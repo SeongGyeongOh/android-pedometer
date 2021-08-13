@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_mainFragment_to_cntFragment"
             app:destination="@id/cntFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_walkFragment"
+            app:destination="@id/walkFragment" />
     </fragment>
     <fragment
         android:id="@+id/cntFragment"
@@ -36,5 +39,10 @@
         android:name="com.example.architecturekotlin.presenter.main.todo_fragment.TodoDetailFragment"
         android:label="fragment_todo_detail"
         tools:layout="@layout/fragment_todo_detail" />
+    <fragment
+        android:id="@+id/walkFragment"
+        android:name="com.example.architecturekotlin.presenter.main.walk_fragment.WalkFragment"
+        android:label="fragment_walk"
+        tools:layout="@layout/fragment_walk" />
 
 </navigation>

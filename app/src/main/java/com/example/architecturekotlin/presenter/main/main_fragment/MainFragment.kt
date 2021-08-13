@@ -47,5 +47,8 @@ class MainFragment : BaseFragment<FragmentMainBinding>() {
         findNavController().navigate(action)
     }
 
-
+    fun goWalkFragment() {
+        val action = MainFragmentDirections.actionMainFragmentToWalkFragment()
+        findNavController().navigate(action)
+    }
 }
