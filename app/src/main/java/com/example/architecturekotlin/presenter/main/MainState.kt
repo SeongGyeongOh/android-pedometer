@@ -1,7 +1,5 @@
 package com.example.architecturekotlin.presenter.main
 
-import androidx.lifecycle.LiveData
-import com.example.architecturekotlin.data.entity.TodoEntity
 import com.example.architecturekotlin.domain.model.CntModel
 import com.example.architecturekotlin.domain.model.TodoModel
 

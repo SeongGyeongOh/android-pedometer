@@ -34,7 +34,6 @@ class MainFragment : BaseFragment<FragmentMainBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.presenter = this
-        mainViewModel.setIntent(MainIntent.GetTodos)
     }
 
     fun goCntFragment() {

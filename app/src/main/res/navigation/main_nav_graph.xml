@@ -43,6 +43,15 @@
         android:id="@+id/walkFragment"
         android:name="com.example.architecturekotlin.presenter.main.walk_fragment.WalkFragment"
         android:label="fragment_walk"
-        tools:layout="@layout/fragment_walk" />
+        tools:layout="@layout/fragment_walk" >
+        <action
+            android:id="@+id/action_walkFragment_to_walkGraphFragment"
+            app:destination="@id/walkGraphFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/walkGraphFragment"
+        android:name="com.example.architecturekotlin.presenter.main.walk_fragment.WalkGraphFragment"
+        android:label="fragment_walk_graph"
+        tools:layout="@layout/fragment_walk_graph" />
 
 </navigation>
