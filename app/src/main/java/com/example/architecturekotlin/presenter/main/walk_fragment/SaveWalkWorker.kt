@@ -10,6 +10,7 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.architecturekotlin.data.db.WalkDatabase
 import com.example.architecturekotlin.data.entity.WalkEntity
+import com.example.architecturekotlin.util.common.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -25,11 +26,6 @@ class SaveWalkWorker @Inject constructor(
 ) : Worker(context, params) {
 
     override fun doWork(): Result {
-//        val number = 10
-//        val result = number * number
-//
-//        Log.d("워커", "SimpleWorker finished: $result")
-
         //OneTimeRequest를 사용할 때, 다음번 실행되는 시간을 준비하자
 //        val curDate = Calendar.getInstance()
 //        val dueDate = Calendar.getInstance()
@@ -44,20 +40,31 @@ class SaveWalkWorker @Inject constructor(
 //        }
 //
 //        val timeDiff = dueDate.timeInMillis - curDate.timeInMillis
+//        val dailyWorkReq = OneTimeWorkRequestBuilder<SaveWalkWorker>()
+//            .setInitialDelay(15, TimeUnit.MINUTES)
+//            .build()
+//
+//        WorkManager.getInstance(context)
+//            .enqueue(dailyWorkReq)
 
-        val dailyWorkReq = OneTimeWorkRequestBuilder<SaveWalkWorker>()
-            .setInitialDelay(15, TimeUnit.MINUTES)
-            .build()
+//        insertData(context)
 
-        WorkManager.getInstance(context)
-            .enqueue(dailyWorkReq)
+        Logger.d("워커 실행됨")
 
-        insertData(context)
+        val date = inputData.getString("date")
+        val count = inputData.getInt("count", 0)
+
+        insertData(context, date ?: "", count)
 
         return Result.success()
     }
 
-    private fun insertData(context: Context) = CoroutineScope(Dispatchers.Default).launch {
-        WalkDatabase.getDatabase(context).walkDao().insert(WalkEntity(1,"ㅁㄴㅇㄹ", 0))
+    private fun insertData(
+        context: Context,
+        date: String,
+        count: Int
+    ) = CoroutineScope(Dispatchers.Default).launch {
+        Logger.d("워커에서 데이터 추가하기")
+        WalkDatabase.getDatabase(context).walkDao().insert(WalkEntity(date = date, count = count))
     }
 }

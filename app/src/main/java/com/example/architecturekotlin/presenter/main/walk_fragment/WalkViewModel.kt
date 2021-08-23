@@ -1,10 +1,13 @@
 package com.example.architecturekotlin.presenter.main.walk_fragment
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.architecturekotlin.domain.usecase.GetWalkUseCase
 import com.example.architecturekotlin.domain.usecase.SaveWalkUseCase
 import com.example.architecturekotlin.util.common.Logger
+import com.example.architecturekotlin.util.common.Pref
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -14,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class WalkViewModel @Inject constructor(
     private val saveWalkUseCase: SaveWalkUseCase,
-    private val getWalkUseCase: GetWalkUseCase
+    private val getWalkUseCase: GetWalkUseCase,
+    private val pref: Pref
 ) : ViewModel() {
 
     private val _walkIntent = MutableSharedFlow<WalkIntent>()
@@ -22,6 +26,9 @@ class WalkViewModel @Inject constructor(
 
     private val _walkState = MutableStateFlow<WalkState>(WalkState.Idle)
     val walkState: StateFlow<WalkState> get() = _walkState
+
+    private val _walkCount = MutableLiveData<Int>(0)
+    val walkCount: LiveData<Int> get() = _walkCount
 
     init {
         handleIntent()
@@ -31,9 +38,16 @@ class WalkViewModel @Inject constructor(
         _walkIntent.emit(intent)
     }
 
+    fun countSteps(count: Int) {
+        _walkCount.value = count
+    }
+
     private fun handleIntent() = viewModelScope.launch {
         walkIntent.collect {
             when (it) {
+                WalkIntent.CountWalk -> {
+                    _walkState.value = WalkState.Counting
+                }
                 is WalkIntent.SaveData -> {
                     Logger.d("뷰모델 WalkIntent.SaveData")
                     saveWalkData(it.date, it.count)
