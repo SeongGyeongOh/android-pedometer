@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_mainFragment_to_walkFragment"
             app:destination="@id/walkFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_barcodeFragment"
+            app:destination="@id/barcodeFragment" />
     </fragment>
     <fragment
         android:id="@+id/cntFragment"
@@ -53,5 +56,10 @@
         android:name="com.example.architecturekotlin.presenter.main.walk_fragment.WalkGraphFragment"
         android:label="fragment_walk_graph"
         tools:layout="@layout/fragment_walk_graph" />
+    <fragment
+        android:id="@+id/barcodeFragment"
+        android:name="com.example.architecturekotlin.presenter.main.barcode_fragment.BarcodeFragment"
+        android:label="fragment_barcode"
+        tools:layout="@layout/fragment_barcode" />
 
 </navigation>

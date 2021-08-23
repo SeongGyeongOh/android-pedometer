@@ -25,7 +25,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/main_go_todo"
         android:backgroundTint="#33f"
         android:text="카운트"
         android:textSize="30sp"
@@ -42,7 +42,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/main_go_cnt"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/main_go_walk"
         android:backgroundTint="#000"
         android:text="TODO"
         android:textSize="30sp"
@@ -59,12 +59,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/main_go_todo"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/main_go_barcode"
         android:backgroundTint="#912"
         android:text="WALK"
         android:textSize="30sp"
         android:textStyle="bold"
         android:onClick="@{(view) -> presenter.goWalkFragment()}"/>
+
+    <Button
+        android:id="@+id/main_go_barcode"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintVertical_bias="0.1"
+        app:layout_constraintWidth_percent="0.6"
+        app:layout_constraintDimensionRatio="1:0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_go_walk"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:backgroundTint="#3b3"
+        android:text="Barcode"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:onClick="@{(view) -> presenter.goBarcodeFragment()}"/>
 
 
 

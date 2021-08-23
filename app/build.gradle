@@ -154,7 +154,10 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
-    //work manager
+    // work manager
     implementation "androidx.work:work-runtime-ktx:$work_version"
+
+    // generate barcode
+    implementation "com.google.zxing:core:3.3.3"
 
 }

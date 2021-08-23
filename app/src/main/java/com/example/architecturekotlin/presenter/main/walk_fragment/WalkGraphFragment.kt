@@ -41,6 +41,7 @@ class WalkGraphFragment : BaseFragment<FragmentWalkGraphBinding>() {
                 is WalkState.Success -> {
                     state.walkData.asLiveData().observe(viewLifecycleOwner) {
                         Logger.d("데이터 가져옴 ${it}")
+                        binding.tvData.text = it.toString()
                     }
                 }
                 is WalkState.Fail -> {

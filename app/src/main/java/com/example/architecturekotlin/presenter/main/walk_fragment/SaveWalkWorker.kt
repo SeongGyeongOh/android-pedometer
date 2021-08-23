@@ -48,12 +48,10 @@ class SaveWalkWorker @Inject constructor(
 //            .enqueue(dailyWorkReq)
 
 //        insertData(context)
-
-        Logger.d("워커 실행됨")
-
         val date = inputData.getString("date")
         val count = inputData.getInt("count", 0)
 
+        Logger.d("워커 - 가져온 데이터: $date - $count")
         insertData(context, date ?: "", count)
 
         return Result.success()

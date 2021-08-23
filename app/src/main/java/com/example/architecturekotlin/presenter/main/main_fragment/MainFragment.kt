@@ -50,4 +50,9 @@ class MainFragment : BaseFragment<FragmentMainBinding>() {
         val action = MainFragmentDirections.actionMainFragmentToWalkFragment()
         findNavController().navigate(action)
     }
+
+    fun goBarcodeFragment() {
+        val action = MainFragmentDirections.actionMainFragmentToBarcodeFragment()
+        findNavController().navigate(action)
+    }
 }

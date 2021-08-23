@@ -121,30 +121,30 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>(), SensorEventListener {
     private fun prepareWorker() {
         Logger.d("여기 실행됨!!!")
         //초기에 지연시킬 시간 구하기
-        val curDate = Calendar.getInstance()
-        val dueDate = Calendar.getInstance()
+//        val curDate = Calendar.getInstance()
+//        val dueDate = Calendar.getInstance()
+//
+//        dueDate.set(Calendar.MINUTE, 60)
+//        dueDate.set(Calendar.SECOND, 0)
+//
+//        if (dueDate.before(curDate)) {
+//            dueDate.add(Calendar.MINUTE, 15)
+//        }
+//
+//        val timeDiff = dueDate.timeInMillis - curDate.timeInMillis
+//        Logger.d("타임디프 $timeDiff")
 
-        dueDate.set(Calendar.MINUTE, 60)
-        dueDate.set(Calendar.SECOND, 0)
+        val data = mapOf(
+            "date" to Calendar.getInstance().timeInMillis.toString(),
+            "count" to viewModel.walkCount.value
+        )
 
-        if (dueDate.before(curDate)) {
-            dueDate.add(Calendar.MINUTE, 15)
-        }
-
-        val timeDiff = dueDate.timeInMillis - curDate.timeInMillis
-        Logger.d("타임디프 $timeDiff")
-
-        val time = mapOf("date" to Calendar.getInstance().toString())
-        val count = mapOf("count" to totalStep)
-
-        val timeData = Data.Builder().putAll(time).build()
-        val countData = Data.Builder().putAll(count).build()
+        val inputData = Data.Builder().putAll(data).build()
 
         /** request 객체 */
         val simpleRequest =
             PeriodicWorkRequestBuilder<SaveWalkWorker>(15, TimeUnit.MINUTES)
-                .setInputData(timeData)
-                .setInputData(countData)
+                .setInputData(inputData)
                 .build()
 
         /** WorkManager 객체 */
