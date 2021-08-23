@@ -26,6 +26,7 @@ import com.example.architecturekotlin.presenter.BaseFragment
 import com.example.architecturekotlin.util.common.Logger
 import com.example.architecturekotlin.util.common.checkRuntimePermission
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
@@ -87,13 +88,13 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>() {
         /**
          * request 객체
          */
-//        val simpleRequest = PeriodicWorkRequestBuilder<SaveWalkWorker>(15, TimeUnit.MINUTES)
+//        val simpleRequest = PeriodicWorkRequestBuilder<SaveWalkWorker>(16, TimeUnit.MINUTES)
 //            .build()
-//        val req = OneTimeWorkRequest.Builder(SaveWalkWorker::class.java).build()
+        val req = OneTimeWorkRequest.Builder(SaveWalkWorker::class.java).build()
 
-        val aa = PeriodicWorkRequest.Builder(
-            SaveWalkWorker::class.java, 16, TimeUnit.MINUTES
-        ).build()
+//        val aa = PeriodicWorkRequest.Builder(
+//            SaveWalkWorker::class.java, 16, TimeUnit.MINUTES
+//        ).build()
 
         /**
          * WorkManager 객체
@@ -105,12 +106,12 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>() {
             /**
              * work manager에 work request 추가
              */
-            workManager.enqueue(aa)
-//            workManager.beginWith(req).enqueue()
+//            workManager.enqueue(aa)
+            workManager.beginWith(req).enqueue()
         }
 
-        val workInfo = workManager.getWorkInfoByIdLiveData(aa.id)
-//        val workInfo = workManager.getWorkInfoByIdLiveData(req.id)
+//        val workInfo = workManager.getWorkInfoByIdLiveData(aa.id)
+        val workInfo = workManager.getWorkInfoByIdLiveData(req.id)
 
         handleWorkerState(workInfo)
     }
@@ -123,13 +124,16 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>() {
 
             when (info.state) {
                 WorkInfo.State.SUCCEEDED -> {
-                    Logger.d("찍힘")
+                    Logger.d("찍힘 = 성공")
                     viewModel.setIntent(WalkIntent.SaveData("시간", 10))
                 }
                 WorkInfo.State.FAILED -> {
+                    Logger.d("찍힘 = 실패")
                     binding.walkText.text = "실패쓰 ${info.state}, ${info.state.name},$workFinished"
                 }
                 else -> {
+                    Logger.d("찍힘 = 알수없는 실패")
+                    binding.walkText.text = "알수없는 실패임다"
                     binding.walkText.text = info.state.name
                 }
             }
