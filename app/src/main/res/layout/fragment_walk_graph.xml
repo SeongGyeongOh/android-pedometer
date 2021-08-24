@@ -6,9 +6,16 @@
     tools:context=".presenter.main.walk_fragment.WalkGraphFragment">
 
 
-    <TextView
-        android:id="@+id/tv_data"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tv_data"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.core.widget.NestedScrollView>
+
 
 </FrameLayout>

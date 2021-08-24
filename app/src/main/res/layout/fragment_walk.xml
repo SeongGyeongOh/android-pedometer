@@ -30,14 +30,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/start_walk_btn" />
 
-        <TextView
-            android:id="@+id/walk_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/walk_fix_text" />
-
         <Button
             android:id="@+id/move_btn"
             android:layout_width="wrap_content"
