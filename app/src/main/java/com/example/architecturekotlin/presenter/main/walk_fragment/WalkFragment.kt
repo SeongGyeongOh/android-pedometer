@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
@@ -57,6 +58,16 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                binding.startWalkBtn.visibility = GONE
+                binding.walkFixText.visibility = VISIBLE
+            }
+        }
+
         binding.moveBtn.setOnClickListener {
             val action = WalkFragmentDirections.actionWalkFragmentToWalkGraphFragment()
             findNavController().navigate(action)
@@ -70,16 +81,6 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>() {
                 action = { },
                 askPermission = { permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION) })
         }
-
-        checkRuntimePermission(
-            requireContext(),
-            Manifest.permission.ACTIVITY_RECOGNITION,
-            PackageManager.PERMISSION_GRANTED,
-            action = {
-                setWorker()
-                binding.startWalkBtn.visibility = GONE
-                binding.walkFixText.visibility = VISIBLE },
-            askPermission = { })
 
         handleState()
     }

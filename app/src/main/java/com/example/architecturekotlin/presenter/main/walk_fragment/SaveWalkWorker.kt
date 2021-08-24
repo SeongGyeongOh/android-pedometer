@@ -6,20 +6,12 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.widget.Toast
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.Worker
-import androidx.work.WorkerParameters
+import androidx.work.*
 import com.example.architecturekotlin.data.db.WalkDatabase
 import com.example.architecturekotlin.data.entity.WalkEntity
-import com.example.architecturekotlin.util.common.DateUtil
 import com.example.architecturekotlin.util.common.Logger
 import com.example.architecturekotlin.util.common.getCurrentTime
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 
@@ -59,9 +51,10 @@ class SaveWalkWorker @Inject constructor(
     }
 
     private val sensorListener = object : SensorEventListener {
+        /** 센서로부터 측정된 값이 전달되는 메소드 */
         override fun onSensorChanged(event: SensorEvent?) {
             if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-
+                Logger.d("센서 실행 - 만보기 카운트")
                 val workManager = WorkManager.getInstance(context)
 
                 val simpleRequest =
@@ -72,6 +65,7 @@ class SaveWalkWorker @Inject constructor(
             }
         }
 
+        /** 센서의 정확도가 변경되면 실행되는 메소드(거의 사용 안됨) */
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {   }
     }
 
@@ -81,6 +75,7 @@ class SaveWalkWorker @Inject constructor(
         count: Int
     ) = CoroutineScope(Dispatchers.Default).launch {
         Logger.d("워커에서 데이터 추가하기")
+
         WalkDatabase.getDatabase(context).walkDao().insert(WalkEntity(date = date, count = count))
     }
 }

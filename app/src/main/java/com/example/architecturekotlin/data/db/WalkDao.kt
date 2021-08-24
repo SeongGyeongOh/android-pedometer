@@ -13,7 +13,7 @@ interface WalkDao {
     fun getWalkCount(): Flow<List<WalkEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(walkCount: WalkEntity)
+    suspend fun insert(walkCount: WalkEntity) : Long
 
     @Query("DELETE FROM walk_table WHERE :date = date")
     suspend fun deleteData(date: String)
