@@ -2,6 +2,7 @@ package com.example.architecturekotlin.presenter.main.walk_fragment
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -106,31 +107,38 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>() {
     }
 
 
-    private fun setWorker() {
-        /** WorkManager 객체 */
-        workManager = WorkManager.getInstance(requireContext())
-
-        val data = mapOf("isFirstRun" to pref.getBoolVal("isFirstRun"))
-        val inputData = Data.Builder().putAll(data).build()
-
-        /** request 객체 */
-        simpleRequest =
-            OneTimeWorkRequest.Builder(SaveWalkWorker::class.java)
-                .setInputData(inputData)
-                .build()
-
-        /** work manager에 work request 추가 */
-        workManager?.beginWith(simpleRequest!!)?.enqueue()
-
-
-    }
+//    private fun setWorker() {
+//        /** WorkManager 객체 */
+//        workManager = WorkManager.getInstance(requireContext())
+//
+//        val data = mapOf("isFirstRun" to pref.getBoolVal("isFirstRun"))
+//        val inputData = Data.Builder().putAll(data).build()
+//
+//        /** request 객체 */
+//        simpleRequest =
+//            OneTimeWorkRequest.Builder(SaveWalkWorker::class.java)
+//                .setInputData(inputData)
+//                .build()
+//
+//        /** work manager에 work request 추가 */
+//        workManager?.beginWith(simpleRequest!!)?.enqueue()
+//
+//
+//    }
 
     private val permissionLauncher: ActivityResultLauncher<String> = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
             pref.setBoolValue("isFirstRun", true)
-            setWorker()
+//            setWorker()
+            val intent = Intent(requireContext(), WalkService::class.java)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                activity?.startForegroundService(intent)
+            } else {
+                activity?.startService(intent)
+            }
             binding.startWalkBtn.visibility = GONE
             binding.walkFixText.visibility = VISIBLE
         } else {
