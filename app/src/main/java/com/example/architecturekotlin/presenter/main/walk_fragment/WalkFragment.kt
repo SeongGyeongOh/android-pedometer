@@ -23,10 +23,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import androidx.navigation.fragment.findNavController
-import androidx.work.Data
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
+import androidx.work.*
 import com.example.architecturekotlin.databinding.FragmentWalkBinding
 import com.example.architecturekotlin.presenter.BaseFragment
 import com.example.architecturekotlin.util.common.Logger
@@ -45,11 +42,12 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>(), SensorEventListener {
 
     val viewModel: WalkViewModel by viewModels()
 
+    var workManager: WorkManager? = null
+    var simpleRequest: OneTimeWorkRequest? = null
     var sensorManager: SensorManager? = null
     var sensor: Sensor? = null
     var mSteps: Int = 0
     var sCounterSteps: Int = 0
-    var totalStep: Int = 0
 
     override fun getFragmentBinding(
         inflater: LayoutInflater,
@@ -63,8 +61,7 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>(), SensorEventListener {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.walkCount.observe(viewLifecycleOwner) {
-            totalStep = it
-            binding.walkText.text = totalStep.toString()
+            binding.walkText.text = it.toString()
         }
 
         binding.moveBtn.setOnClickListener {
@@ -88,7 +85,8 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>(), SensorEventListener {
             action = {
                 binding.startWalkBtn.visibility = GONE
                 binding.walkFixText.visibility = VISIBLE
-                initSensor() },
+                initSensor()
+                setWorker() },
             askPermission = { })
 
         handleState()
@@ -118,52 +116,37 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>(), SensorEventListener {
         }
     }
 
-    private fun prepareWorker() {
+    private fun setWorker() {
         Logger.d("여기 실행됨!!!")
-        //초기에 지연시킬 시간 구하기
-//        val curDate = Calendar.getInstance()
-//        val dueDate = Calendar.getInstance()
-//
-//        dueDate.set(Calendar.MINUTE, 60)
-//        dueDate.set(Calendar.SECOND, 0)
-//
-//        if (dueDate.before(curDate)) {
-//            dueDate.add(Calendar.MINUTE, 15)
-//        }
-//
-//        val timeDiff = dueDate.timeInMillis - curDate.timeInMillis
-//        Logger.d("타임디프 $timeDiff")
-
-        val data = mapOf(
-            "date" to Calendar.getInstance().timeInMillis.toString(),
-            "count" to viewModel.walkCount.value
-        )
-
-        val inputData = Data.Builder().putAll(data).build()
-
-        /** request 객체 */
-        val simpleRequest =
-            PeriodicWorkRequestBuilder<SaveWalkWorker>(15, TimeUnit.MINUTES)
-                .setInputData(inputData)
-                .build()
 
         /** WorkManager 객체 */
-        val workManager = WorkManager.getInstance(requireContext())
+        workManager = WorkManager.getInstance(requireContext())
+
+        /** request 객체 */
+        simpleRequest =
+            OneTimeWorkRequest.Builder(SaveWalkWorker::class.java)
+                .build()
 
         /** work manager에 work request 추가 */
-        workManager.enqueue(simpleRequest)
+        workManager?.enqueue(simpleRequest!!)
 
-        val workInfo = workManager.getWorkInfoByIdLiveData(simpleRequest.id)
+        val workInfo = workManager?.getWorkInfoByIdLiveData(simpleRequest!!.id)
 
-        handleWorkerState(workInfo)
+        workInfo?.let {
+            handleWorkerState(it)
+        }
     }
 
-    fun handleWorkerState(workInfo: LiveData<WorkInfo>) {
+    private fun handleWorkerState(workInfo: LiveData<WorkInfo>) {
         workInfo.observe(viewLifecycleOwner) { info ->
             when (info.state) {
-                WorkInfo.State.SUCCEEDED -> { Logger.d("찍힘 = 성공") }
-                WorkInfo.State.FAILED -> { Logger.d("찍힘 = 실패") }
-                else -> { Logger.d("찍힘 - 성공과 실패 사이 어딘가") }
+                WorkInfo.State.SUCCEEDED -> {
+                    Logger.d("WorkInfoState : ${info.state.name}")
+                    viewModel.setIntent(
+                        WalkIntent.SaveData(Calendar.getInstance().timeInMillis.toString(), 1))
+                }
+                WorkInfo.State.FAILED -> { Logger.d("WorkInfoState : ${info.state.name}") }
+                else -> { Logger.d("WorkInfoState : ${info.state.name}") }
             }
         }
     }
@@ -180,11 +163,9 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>(), SensorEventListener {
     ) { isGranted: Boolean ->
         if (isGranted) {
             initSensor()
-
+            setWorker()
             binding.startWalkBtn.visibility = GONE
             binding.walkFixText.visibility = VISIBLE
-
-            prepareWorker()
         } else {
             Toast.makeText(requireContext(), "만보기 사용을 위해 권한을 허용해 주세요", Toast.LENGTH_SHORT).show()
         }
@@ -192,26 +173,16 @@ class WalkFragment : BaseFragment<FragmentWalkBinding>(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-            if (pref.getBoolVal("isFirstRun")) {
+            Logger.d("만보기 - 카운트")
+
+            if (sCounterSteps < 1) {
                 sCounterSteps = event.values[0].toInt()
-                pref.setIntValue("sCounterSteps", sCounterSteps)
-                pref.setBoolValue("isFirstRun", false)
-            } else {
-                sCounterSteps = pref.getIntValue("sCounterSteps")
             }
 
             mSteps = event.values[0].toInt() - sCounterSteps
-
             viewModel.countSteps(mSteps)
         }
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-
-    }
-
-    override fun onStop() {
-        super.onStop()
-        pref.setIntValue("mStep", totalStep)
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { }
 }
