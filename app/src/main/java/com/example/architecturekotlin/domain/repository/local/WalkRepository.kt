@@ -7,7 +7,7 @@ interface WalkRepository {
     suspend fun insertWalkCount(walkData: WalkModel)
     suspend fun getWalkCount(): Flow<List<WalkModel>>
     suspend fun deleteWalkCount(date: String)
-    suspend fun getTodayCount(date: String): WalkModel
+    suspend fun getTodayCount(date: String): Flow<WalkModel>
     suspend fun updateWalk(date: String, count: Int)
     suspend fun upsertWalk(walkData: WalkModel)
 }

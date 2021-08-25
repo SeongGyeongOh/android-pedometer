@@ -26,6 +26,7 @@ import com.example.architecturekotlin.util.common.Pref
 import com.example.architecturekotlin.util.common.checkRuntimePermission
 import com.example.architecturekotlin.util.common.getCurrentDate
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -85,7 +86,9 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
                 }
                 is WalkState.TodayCount -> {
-                    binding.walkFixText.text = "오늘 걸은 걸음 :  ${state.walkData.count}"
+                    state.walkData.asLiveData().observe(viewLifecycleOwner) {
+                        binding.walkFixText.text = "오늘 걸은 걸음 :  ${it.count}"
+                    }
                 }
 
                 is WalkState.TotalCount -> {

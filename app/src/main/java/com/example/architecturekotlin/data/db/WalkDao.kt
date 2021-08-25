@@ -3,7 +3,11 @@ package com.example.architecturekotlin.data.db
 import androidx.room.*
 import com.example.architecturekotlin.data.entity.WalkEntity
 import com.example.architecturekotlin.util.common.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.stateIn
 
 @Dao
 interface WalkDao {
@@ -26,12 +30,15 @@ interface WalkDao {
     suspend fun deleteData(date: String)
 
     @Query("SELECT * FROM walk_table WHERE :date = date")
-    fun getTodayCount(date: String): WalkEntity?
+    fun getTodayCount(date: String): Flow<WalkEntity?>
 
     @Transaction
     suspend fun upsertCnt(walkEntity: WalkEntity) {
-        val isExist = getTodayCount(walkEntity.date)
-        Logger.i("WalkDao isExist : $isExist")
+        val isExist: WalkEntity? =
+            getTodayCount(walkEntity.date).stateIn(CoroutineScope(Dispatchers.Default)).value
+
+        Logger.i("WalkDao isExist : ${isExist}")
+
         if (isExist == null) {
             insert(walkEntity)
         } else {

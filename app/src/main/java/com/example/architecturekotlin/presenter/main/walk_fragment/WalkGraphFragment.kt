@@ -10,10 +10,13 @@ import com.example.architecturekotlin.databinding.FragmentWalkGraphBinding
 import com.example.architecturekotlin.presenter.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.architecturekotlin.util.common.Logger
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class WalkGraphFragment : BaseFragment<FragmentWalkGraphBinding>() {
+
+    @Inject lateinit var adapter: WalkAdapter
 
     val viewModel: WalkViewModel by viewModels()
 
@@ -27,6 +30,7 @@ class WalkGraphFragment : BaseFragment<FragmentWalkGraphBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.walkRecycler.adapter = adapter
         requestIntent()
         handleState()
     }
@@ -41,7 +45,7 @@ class WalkGraphFragment : BaseFragment<FragmentWalkGraphBinding>() {
                 is WalkState.TotalCount -> {
                     state.walkData.asLiveData().observe(viewLifecycleOwner) {
                         Logger.d("데이터 가져옴 ${it}")
-                        binding.tvData.text = it.toString()
+                        adapter.submitList(it)
                     }
                 }
                 is WalkState.Fail -> {

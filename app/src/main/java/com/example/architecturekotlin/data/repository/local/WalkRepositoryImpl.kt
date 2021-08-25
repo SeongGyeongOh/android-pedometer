@@ -5,6 +5,7 @@ import com.example.architecturekotlin.data.mapper.map
 import com.example.architecturekotlin.domain.model.WalkModel
 import com.example.architecturekotlin.domain.repository.local.WalkRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -28,9 +29,9 @@ class WalkRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun getTodayCount(date: String): WalkModel {
-        return walkDao.getTodayCount(date)?.map() ?: run {
-            WalkModel()
+    override suspend fun getTodayCount(date: String): Flow<WalkModel> {
+        return walkDao.getTodayCount(date).map {
+            it?.map() ?: WalkModel()
         }
     }
 

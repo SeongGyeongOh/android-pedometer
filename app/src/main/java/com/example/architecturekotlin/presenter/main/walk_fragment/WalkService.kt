@@ -23,7 +23,7 @@ import com.example.architecturekotlin.util.common.getCurrentDate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,7 +52,7 @@ class WalkService @Inject constructor(): Service() {
         val noti = NotificationCompat.Builder(this, "ChannelId1")
             .setContentTitle("만보기 테스트")
             .setContentText("만보기 돌아가는중")
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.icon_walk)
             .setContentIntent(pIntent)
             .build()
 
@@ -120,8 +120,8 @@ class WalkService @Inject constructor(): Service() {
     ) = CoroutineScope(Dispatchers.Default).launch {
         Logger.d("서비스에서 데이터 추가하기")
 
-        newCnt = walkRepository.getTodayCount(date).count + 1
-
+        newCnt =
+            walkRepository.getTodayCount(date).stateIn(CoroutineScope(Dispatchers.Default)).value.count + 1
         walkRepository.upsertWalk(WalkModel(date = date, count = newCnt))
     }
 }
