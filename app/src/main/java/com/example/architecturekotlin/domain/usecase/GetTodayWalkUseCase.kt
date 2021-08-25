@@ -7,9 +7,9 @@ import javax.inject.Inject
 
 class GetTodayWalkUseCase @Inject constructor(
     private val repository: WalkRepository
-) : UseCaseWithParams<Flow<List<WalkModel>>, String>() {
+) : UseCaseWithParams<WalkModel, String>() {
 
-    public override suspend fun buildUseCase(date: String): Flow<List<WalkModel>> {
+    public override suspend fun buildUseCase(date: String): WalkModel {
         return repository.getTodayCount(date)
     }
 }

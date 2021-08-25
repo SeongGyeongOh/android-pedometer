@@ -5,22 +5,24 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.architecturekotlin.data.entity.CntEntity
+import com.example.architecturekotlin.data.entity.WalkEntity
 
-@Database(entities = [CntEntity::class], version = 1, exportSchema = true)
-abstract class CntDatabase: RoomDatabase() {
+@Database(entities = [CntEntity::class, WalkEntity::class], version = 1, exportSchema = true)
+abstract class CommonDatabase: RoomDatabase() {
 
     abstract fun cntDao(): CntDao
+    abstract fun walkDao(): WalkDao
 
     companion object {
 
         @Volatile
-        private var INSTANCE: CntDatabase? = null
+        private var INSTANCE: CommonDatabase? = null
 
-        fun getDatabase(context: Context): CntDatabase {
+        fun getDatabase(context: Context): CommonDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    CntDatabase::class.java,
+                    CommonDatabase::class.java,
                     "cnt_database"
                 ).build()
                 INSTANCE = instance

@@ -85,9 +85,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
                 }
                 is WalkState.TodayCount -> {
-                    state.walkData.asLiveData().observe(viewLifecycleOwner) { dataList ->
-                        binding.walkFixText.text = "오늘 걸은 걸음 :  ${dataList.size}"
-                    }
+                    binding.walkFixText.text = "오늘 걸은 걸음 :  ${state.walkData.count}"
                 }
 
                 is WalkState.TotalCount -> {

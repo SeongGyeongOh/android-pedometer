@@ -1,13 +1,10 @@
 package com.example.architecturekotlin.data.db
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.architecturekotlin.data.entity.CntEntity
-import com.example.architecturekotlin.domain.model.CntModel
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CntDao {

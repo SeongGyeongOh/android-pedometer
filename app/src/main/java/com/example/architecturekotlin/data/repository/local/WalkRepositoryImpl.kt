@@ -28,11 +28,17 @@ class WalkRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun getTodayCount(date: String): Flow<List<WalkModel>> {
-        return walkDao.getTodayCount(date).map { walkList ->
-            walkList.map {
-                it.map()
-            }
+    override suspend fun getTodayCount(date: String): WalkModel {
+        return walkDao.getTodayCount(date)?.map() ?: run {
+            WalkModel()
         }
+    }
+
+    override suspend fun updateWalk(date: String, count: Int) {
+        walkDao.updateCnt(count, date)
+    }
+
+    override suspend fun upsertWalk(walkData: WalkModel) {
+        walkDao.upsertCnt(walkData.map())
     }
 }

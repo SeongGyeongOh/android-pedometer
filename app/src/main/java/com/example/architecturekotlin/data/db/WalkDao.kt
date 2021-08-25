@@ -1,10 +1,8 @@
 package com.example.architecturekotlin.data.db
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.example.architecturekotlin.data.entity.WalkEntity
+import com.example.architecturekotlin.util.common.Logger
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,12 +10,32 @@ interface WalkDao {
     @Query("SELECT * FROM walk_table")
     fun getWalkCount(): Flow<List<WalkEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(walkCount: WalkEntity) : Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(walkEntity: WalkEntity) : Long
+
+//    @Insert(onConflict = OnConflictStrategy.IGNORE)
+//    suspend fun insertAll(vararg walkEntity: WalkEntity) : Long //vararg : 가변인자
+
+    @Query("UPDATE walk_table SET count = :count WHERE date = :date")
+    suspend fun updateCnt(count: Int, date: String)
+
+    @Update(entity = WalkEntity::class)
+    suspend fun updateCnt2(walkEntity: WalkEntity)
 
     @Query("DELETE FROM walk_table WHERE :date = date")
     suspend fun deleteData(date: String)
 
     @Query("SELECT * FROM walk_table WHERE :date = date")
-    fun getTodayCount(date: String): Flow<List<WalkEntity>>
+    fun getTodayCount(date: String): WalkEntity?
+
+    @Transaction
+    suspend fun upsertCnt(walkEntity: WalkEntity) {
+        val isExist = getTodayCount(walkEntity.date)
+        Logger.i("WalkDao isExist : $isExist")
+        if (isExist == null) {
+            insert(walkEntity)
+        } else {
+            updateCnt(walkEntity.count, walkEntity.date)
+        }
+    }
 }

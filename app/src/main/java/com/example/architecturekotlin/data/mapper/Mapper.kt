@@ -23,13 +23,13 @@ fun TodoEntity.map() = TodoModel(
 )
 
 fun WalkEntity.map() = WalkModel(
-    num = num,
+    id = id,
     date = date,
     count = count
 )
 
 fun WalkModel.map() = WalkEntity(
-    num = num,
+    id = id,
     date = date,
     count = count
 )

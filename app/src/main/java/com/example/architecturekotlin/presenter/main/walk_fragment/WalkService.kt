@@ -15,17 +15,15 @@ import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.example.architecturekotlin.R
-import com.example.architecturekotlin.data.db.WalkDatabase
-import com.example.architecturekotlin.data.entity.WalkEntity
 import com.example.architecturekotlin.domain.model.WalkModel
 import com.example.architecturekotlin.domain.repository.local.WalkRepository
-import com.example.architecturekotlin.domain.usecase.GetWalkUseCase
 import com.example.architecturekotlin.presenter.main.MainActivity
 import com.example.architecturekotlin.util.common.Logger
 import com.example.architecturekotlin.util.common.getCurrentDate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,10 +36,9 @@ class WalkService @Inject constructor(): Service() {
     @Inject
     lateinit var walkRepository: WalkRepository
 
-
-
     var viewModel: WalkViewModel? = null
     private var sensor: Sensor? = null
+    private var newCnt: Int = 0
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         /** 포그라운드 서비스 돌리기 */
@@ -53,8 +50,8 @@ class WalkService @Inject constructor(): Service() {
         val pIntent = PendingIntent.getActivity(this, 0, intent1, 0)
 
         val noti = NotificationCompat.Builder(this, "ChannelId1")
-            .setContentTitle("Foreground tutorial")
-            .setContentText("Application is running")
+            .setContentTitle("만보기 테스트")
+            .setContentText("만보기 돌아가는중")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pIntent)
             .build()
@@ -70,7 +67,7 @@ class WalkService @Inject constructor(): Service() {
             sensorManager.registerListener(
                 sensorListener,
                 sensor,
-                SensorManager.SENSOR_DELAY_UI
+                SensorManager.SENSOR_DELAY_NORMAL
             )
         }
 
@@ -123,6 +120,8 @@ class WalkService @Inject constructor(): Service() {
     ) = CoroutineScope(Dispatchers.Default).launch {
         Logger.d("서비스에서 데이터 추가하기")
 
-        walkRepository.insertWalkCount(WalkModel(date = date, count = count))
+        newCnt = walkRepository.getTodayCount(date).count + 1
+
+        walkRepository.upsertWalk(WalkModel(date = date, count = newCnt))
     }
 }

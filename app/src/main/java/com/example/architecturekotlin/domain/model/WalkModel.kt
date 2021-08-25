@@ -1,7 +1,10 @@
 package com.example.architecturekotlin.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class WalkModel (
-    val num: Int = 0,
+    val id: Int = 0,
     val date: String = "",
     val count: Int = 0
 )
