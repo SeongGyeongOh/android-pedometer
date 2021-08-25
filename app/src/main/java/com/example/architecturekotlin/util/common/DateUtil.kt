@@ -7,7 +7,7 @@ class DateUtil {
 
 }
 
-fun Long.getCurrentTime(): String {
+fun Long.getCurrentDate(): String {
     val date = Date(this)
-    return SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date)
+    return SimpleDateFormat("yyyy-MM-dd").format(date)
 }

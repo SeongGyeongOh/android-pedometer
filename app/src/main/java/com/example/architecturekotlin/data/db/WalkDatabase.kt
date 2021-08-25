@@ -29,5 +29,4 @@ abstract class WalkDatabase : RoomDatabase() {
             }
         }
     }
-
 }

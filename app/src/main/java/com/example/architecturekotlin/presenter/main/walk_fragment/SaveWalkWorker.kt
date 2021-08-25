@@ -10,7 +10,7 @@ import androidx.work.*
 import com.example.architecturekotlin.data.db.WalkDatabase
 import com.example.architecturekotlin.data.entity.WalkEntity
 import com.example.architecturekotlin.util.common.Logger
-import com.example.architecturekotlin.util.common.getCurrentTime
+import com.example.architecturekotlin.util.common.getCurrentDate
 import kotlinx.coroutines.*
 import javax.inject.Inject
 
@@ -45,7 +45,7 @@ class SaveWalkWorker @Inject constructor(
             }
         }
 
-        insertData(context, System.currentTimeMillis().getCurrentTime(), 1)
+        insertData(context, System.currentTimeMillis().getCurrentDate(), 1)
 
         return Result.success()
     }

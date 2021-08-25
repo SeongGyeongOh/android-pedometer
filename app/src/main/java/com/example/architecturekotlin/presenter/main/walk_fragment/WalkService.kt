@@ -14,24 +14,33 @@ import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.architecturekotlin.R
 import com.example.architecturekotlin.data.db.WalkDatabase
 import com.example.architecturekotlin.data.entity.WalkEntity
+import com.example.architecturekotlin.domain.model.WalkModel
+import com.example.architecturekotlin.domain.repository.local.WalkRepository
+import com.example.architecturekotlin.domain.usecase.GetWalkUseCase
 import com.example.architecturekotlin.presenter.main.MainActivity
 import com.example.architecturekotlin.util.common.Logger
-import com.example.architecturekotlin.util.common.getCurrentTime
+import com.example.architecturekotlin.util.common.getCurrentDate
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class WalkService : Service() {
+@AndroidEntryPoint
+class WalkService @Inject constructor(): Service() {
 
     @Inject
     lateinit var walkFragment: WalkFragment
 
+    @Inject
+    lateinit var walkRepository: WalkRepository
+
+
+
+    var viewModel: WalkViewModel? = null
     private var sensor: Sensor? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -65,8 +74,6 @@ class WalkService : Service() {
             )
         }
 
-        insertData(this, System.currentTimeMillis().getCurrentTime(), 1)
-
         return START_STICKY
     }
 
@@ -75,7 +82,7 @@ class WalkService : Service() {
     }
 
     private fun createNotificationChannel() {
-        // check android version is over OREO
+        // check android version - over OREO
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "ChannelId1",
@@ -100,13 +107,8 @@ class WalkService : Service() {
         override fun onSensorChanged(event: SensorEvent?) {
             if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
                 Logger.d("센서 실행 - 만보기 카운트")
-                val workManager = WorkManager.getInstance(this@WalkService)
 
-                val simpleRequest =
-                    OneTimeWorkRequestBuilder<SaveWalkWorker>()
-                        .build()
-
-                workManager.beginWith(simpleRequest).enqueue()
+                insertData(this@WalkService, System.currentTimeMillis().getCurrentDate(), 1)
             }
         }
 
@@ -121,6 +123,6 @@ class WalkService : Service() {
     ) = CoroutineScope(Dispatchers.Default).launch {
         Logger.d("서비스에서 데이터 추가하기")
 
-        WalkDatabase.getDatabase(context).walkDao().insert(WalkEntity(date = date, count = count))
+        walkRepository.insertWalkCount(WalkModel(date = date, count = count))
     }
 }

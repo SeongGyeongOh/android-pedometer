@@ -17,4 +17,7 @@ interface WalkDao {
 
     @Query("DELETE FROM walk_table WHERE :date = date")
     suspend fun deleteData(date: String)
+
+    @Query("SELECT * FROM walk_table WHERE :date = date")
+    fun getTodayCount(date: String): Flow<List<WalkEntity>>
 }

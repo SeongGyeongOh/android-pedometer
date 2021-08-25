@@ -4,10 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.architecturekotlin.domain.usecase.GetTodayWalkUseCase
 import com.example.architecturekotlin.domain.usecase.GetWalkUseCase
 import com.example.architecturekotlin.domain.usecase.SaveWalkUseCase
 import com.example.architecturekotlin.util.common.Logger
-import com.example.architecturekotlin.util.common.Pref
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class WalkViewModel @Inject constructor(
     private val saveWalkUseCase: SaveWalkUseCase,
     private val getWalkUseCase: GetWalkUseCase,
-    private val pref: Pref
+    private val getTodayWalkUseCase: GetTodayWalkUseCase,
 ) : ViewModel() {
 
     private val _walkIntent = MutableSharedFlow<WalkIntent>()
@@ -55,6 +55,9 @@ class WalkViewModel @Inject constructor(
                 WalkIntent.GetData -> {
                     getWalkData()
                 }
+                is WalkIntent.GetTodayData -> {
+                    getTodayData(it.date)
+                }
             }
         }
     }
@@ -62,7 +65,7 @@ class WalkViewModel @Inject constructor(
     private fun saveWalkData(date: String, count: Int)
     = viewModelScope.launch(Dispatchers.Default) {
         _walkState.value = try {
-            WalkState.Success(saveWalkUseCase.buildUseCase(Pair(date, count)))
+            WalkState.TotalCount(saveWalkUseCase.buildUseCase(Pair(date, count)))
         } catch (e: Exception) {
             WalkState.Fail(Error("Walk 데이터 저장에 실패하였습니다.", e.cause))
         }
@@ -70,9 +73,17 @@ class WalkViewModel @Inject constructor(
 
     private fun getWalkData() = viewModelScope.launch(Dispatchers.Default) {
         _walkState.value = try {
-            WalkState.Success(getWalkUseCase.buildUseCase())
+            WalkState.TotalCount(getWalkUseCase.buildUseCase())
         } catch (e: Exception) {
             WalkState.Fail(Error("Walk 데이터 호출에 실패하였습니다.", e.cause))
+        }
+    }
+
+    private fun getTodayData(date: String) = viewModelScope.launch(Dispatchers.Default) {
+        _walkState.value = try {
+            WalkState.TodayCount(getTodayWalkUseCase.buildUseCase(date))
+        } catch (e: Exception) {
+            WalkState.Fail(Error("오늘의 Walk 데이터 호출에 실패하였습니다.", e.cause))
         }
     }
 }

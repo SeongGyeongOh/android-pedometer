@@ -38,7 +38,7 @@ class WalkGraphFragment : BaseFragment<FragmentWalkGraphBinding>() {
     private fun handleState() {
         viewModel.walkState.asLiveData().observe(viewLifecycleOwner) { state ->
             when(state) {
-                is WalkState.Success -> {
+                is WalkState.TotalCount -> {
                     state.walkData.asLiveData().observe(viewLifecycleOwner) {
                         Logger.d("데이터 가져옴 ${it}")
                         binding.tvData.text = it.toString()
