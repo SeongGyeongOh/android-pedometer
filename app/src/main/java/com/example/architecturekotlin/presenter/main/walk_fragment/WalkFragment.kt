@@ -5,7 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -19,14 +19,16 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.asLiveData
 import androidx.navigation.fragment.findNavController
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.example.architecturekotlin.databinding.FragmentWalkBinding
 import com.example.architecturekotlin.presenter.BaseFragment
 import com.example.architecturekotlin.util.common.Logger
 import com.example.architecturekotlin.util.common.Pref
-import com.example.architecturekotlin.util.common.checkRuntimePermission
 import com.example.architecturekotlin.util.common.getCurrentDate
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -104,7 +106,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
                 requireContext(),
                 permission
             ) -> {
-                startService()
+                startServiceViaWorker()
                 binding.startWalkBtn.visibility = GONE
                 binding.walkFixText.visibility = VISIBLE
             }
@@ -128,12 +130,40 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
     }
 
     private fun startService() {
-        val intent = Intent(requireContext(), WalkService::class.java)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity?.startForegroundService(intent)
-        } else {
-            activity?.startService(intent)
+        if (!WalkService().isServiceRunning) {
+            val intent = Intent(requireContext(), WalkService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                activity?.startForegroundService(intent)
+            } else {
+                activity?.startService(intent)
+            }
         }
+    }
+
+    fun startServiceViaWorker() {
+        Logger.d("startServiceViaWorker called")
+        val UNIQUE_WORK_NAME = "StartWalkServiceViaWorker"
+        //String WORKER_TAG = "MyServiceWorkerTag";
+        val workManager = WorkManager.getInstance(requireContext())
+
+        // As per Documentation: The minimum repeat interval that can be defined is 15 minutes (
+        // same as the JobScheduler API), but in practice 15 doesn't work. Using 16 here
+        val request = PeriodicWorkRequest.Builder(
+            WalkWorker::class.java,
+            16,
+            TimeUnit.MINUTES
+        ) //.addTag(WORKER_TAG)
+            .build()
+        // below method will schedule a new work, each time app is opened
+        //workManager.enqueue(request);
+
+        // to schedule a unique work, no matter how many times app is opened i.e. startServiceViaWorker gets called
+        // https://developer.android.com/topic/libraries/architecture/workmanager/how-to/unique-work
+        // do check for AutoStart permission
+        workManager.enqueueUniquePeriodicWork(
+            UNIQUE_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
     }
 }

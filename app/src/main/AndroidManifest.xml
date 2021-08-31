@@ -15,6 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ArchitectureKotlin">
+        <receiver android:name=".presenter.main.walk_fragment.MyReceiver"
+            android:enabled="true"
+            android:exported="false"/>
 
         <activity android:name=".presenter.main.MainActivity"></activity>
         <activity android:name=".presenter.splash.SplashActivity">

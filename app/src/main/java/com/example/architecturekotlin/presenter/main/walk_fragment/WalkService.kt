@@ -27,15 +27,18 @@ import javax.inject.Inject
 class WalkService @Inject constructor(): Service() {
 
     @Inject
-    lateinit var walkFragment: WalkFragment
-
-    @Inject
     lateinit var walkRepository: WalkRepository
 
-    var viewModel: WalkViewModel? = null
     private var sensor: Sensor? = null
     private var newCnt: Int = 0
     private var noti: Notification? = null
+    var isServiceRunning: Boolean = false
+
+    override fun onCreate() {
+        super.onCreate()
+
+
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         /** 포그라운드 서비스 돌리기 */
@@ -86,6 +89,12 @@ class WalkService @Inject constructor(): Service() {
     }
 
     override fun onDestroy() {
+        isServiceRunning = false
+        stopForeground(true)
+
+        val intent = Intent(this, MyReceiver::class.java)
+        sendBroadcast(intent)
+
         super.onDestroy()
     }
 
