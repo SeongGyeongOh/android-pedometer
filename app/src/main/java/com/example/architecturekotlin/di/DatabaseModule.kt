@@ -21,11 +21,13 @@ class DatabaseModule {
     }
 
     @Provides
+    @Singleton
     fun provideCntDao(todoDatabase: CommonDatabase): CntDao {
         return todoDatabase.cntDao()
     }
 
     @Provides
+    @Singleton
     fun provideWalkDao(walkDatabase: CommonDatabase): WalkDao {
         return walkDatabase.walkDao()
     }

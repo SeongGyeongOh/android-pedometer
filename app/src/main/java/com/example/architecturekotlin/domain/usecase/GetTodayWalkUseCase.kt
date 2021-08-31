@@ -10,6 +10,6 @@ class GetTodayWalkUseCase @Inject constructor(
 ) : UseCaseWithParams<Flow<WalkModel>, String>() {
 
     public override suspend fun buildUseCase(date: String): Flow<WalkModel> {
-        return repository.getTodayCount(date)
+        return repository.getTodayCountAsFlow(date)
     }
 }

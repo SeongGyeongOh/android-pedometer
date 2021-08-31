@@ -8,10 +8,11 @@ fun checkRuntimePermission(context: Context,
                            isGranted: Int,
                            action: () -> Unit,
                            askPermission: () -> Unit) {
-    when {
-        ContextCompat.checkSelfPermission(context, permission) == isGranted -> {
+    when (isGranted) {
+        ContextCompat.checkSelfPermission(context, permission) -> {
             action()
-        } else -> {
+        }
+        else -> {
             askPermission()
         }
     }

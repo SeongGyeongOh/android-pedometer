@@ -1,9 +1,6 @@
 package com.example.architecturekotlin.presenter.main.walk_fragment
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.hardware.Sensor
@@ -23,7 +20,6 @@ import com.example.architecturekotlin.util.common.getCurrentDate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,6 +35,7 @@ class WalkService @Inject constructor(): Service() {
     var viewModel: WalkViewModel? = null
     private var sensor: Sensor? = null
     private var newCnt: Int = 0
+    private var noti: Notification? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         /** 포그라운드 서비스 돌리기 */
@@ -49,7 +46,7 @@ class WalkService @Inject constructor(): Service() {
         val intent1 = Intent(this, MainActivity::class.java)
         val pIntent = PendingIntent.getActivity(this, 0, intent1, 0)
 
-        val noti = NotificationCompat.Builder(this, "ChannelId1")
+        noti = NotificationCompat.Builder(this, "ChannelId1")
             .setContentTitle("만보기 테스트")
             .setContentText("만보기 돌아가는중")
             .setSmallIcon(R.drawable.icon_walk)
@@ -74,10 +71,6 @@ class WalkService @Inject constructor(): Service() {
         return START_STICKY
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
-
     private fun createNotificationChannel() {
         // check android version - over OREO
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -93,10 +86,11 @@ class WalkService @Inject constructor(): Service() {
     }
 
     override fun onDestroy() {
-        stopForeground(true)
-        stopSelf()
-
         super.onDestroy()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
     }
 
     private val sensorListener = object : SensorEventListener {
@@ -105,7 +99,7 @@ class WalkService @Inject constructor(): Service() {
             if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
                 Logger.d("센서 실행 - 만보기 카운트")
 
-                insertData(this@WalkService, System.currentTimeMillis().getCurrentDate(), 1)
+                insertData(System.currentTimeMillis().getCurrentDate())
             }
         }
 
@@ -114,14 +108,12 @@ class WalkService @Inject constructor(): Service() {
     }
 
     private fun insertData(
-        context: Context,
         date: String,
-        count: Int
     ) = CoroutineScope(Dispatchers.Default).launch {
         Logger.d("서비스에서 데이터 추가하기")
 
-        newCnt =
-            walkRepository.getTodayCount(date).stateIn(CoroutineScope(Dispatchers.Default)).value.count + 1
+        newCnt = walkRepository.getTodayCount(date).count + 1
+
         walkRepository.upsertWalk(WalkModel(date = date, count = newCnt))
     }
 }

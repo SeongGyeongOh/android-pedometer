@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @Dao
 interface WalkDao {
@@ -30,12 +31,15 @@ interface WalkDao {
     suspend fun deleteData(date: String)
 
     @Query("SELECT * FROM walk_table WHERE :date = date")
-    fun getTodayCount(date: String): Flow<WalkEntity?>
+    fun getTodayCount(date: String) : WalkEntity?
+
+    @Query("SELECT * FROM walk_table WHERE :date = date")
+    fun getTodayCountAsFlow(date: String) : Flow<WalkEntity?>
 
     @Transaction
     suspend fun upsertCnt(walkEntity: WalkEntity) {
         val isExist: WalkEntity? =
-            getTodayCount(walkEntity.date).stateIn(CoroutineScope(Dispatchers.Default)).value
+            getTodayCount(walkEntity.date)
 
         Logger.i("WalkDao isExist : ${isExist}")
 

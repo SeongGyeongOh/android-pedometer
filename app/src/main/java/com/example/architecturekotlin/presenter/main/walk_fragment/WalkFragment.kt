@@ -50,16 +50,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACTIVITY_RECOGNITION
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                startService()
-                binding.startWalkBtn.visibility = GONE
-                binding.walkFixText.visibility = VISIBLE
-            }
-        }
+        checkPermission(Build.VERSION.SDK_INT)
 
         binding.moveBtn.setOnClickListener {
             val action = WalkFragmentDirections.actionWalkFragmentToWalkGraphFragment()
@@ -67,15 +58,11 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         }
 
         binding.startWalkBtn.setOnClickListener {
-            checkRuntimePermission(
-                requireContext(),
-                Manifest.permission.ACTIVITY_RECOGNITION,
-                PackageManager.PERMISSION_GRANTED,
-                action = { },
-                askPermission = { permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION) })
+            checkPermission(Build.VERSION.SDK_INT)
         }
 
         handleState()
+
         viewModel.setIntent(WalkIntent.GetTodayData(date = System.currentTimeMillis().getCurrentDate()))
     }
 
@@ -100,6 +87,29 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
                 is WalkState.Fail -> {
                     Logger.d("실패 ${state.error.message}")
                 }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun checkPermission(sdk: Int) {
+        val permission = if (sdk >= 29) {
+            Manifest.permission.ACTIVITY_RECOGNITION
+        } else {
+            "com.google.android.gms.permission.ACTIVITY_RECOGNITION"
+        }
+
+        when (PackageManager.PERMISSION_GRANTED) {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                permission
+            ) -> {
+                startService()
+                binding.startWalkBtn.visibility = GONE
+                binding.walkFixText.visibility = VISIBLE
+            }
+            else -> {
+                permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
             }
         }
     }
