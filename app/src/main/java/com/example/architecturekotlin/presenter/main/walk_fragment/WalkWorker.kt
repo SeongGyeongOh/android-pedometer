@@ -22,8 +22,9 @@ class WalkWorker(
              * that the service will call startForeground once it begins running.
              * The service is given an amount of time comparable to the ANR interval to do this,
              * otherwise the system will automatically stop the service and declare the app ANR.
-             */ContextCompat.startForegroundService(context, intent)
+             */
             //this.context.startService(intent);
+            ContextCompat.startForegroundService(context, intent)
         }
         return Result.success()
     }

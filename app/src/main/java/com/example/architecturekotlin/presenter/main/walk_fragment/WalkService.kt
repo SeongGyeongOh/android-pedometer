@@ -34,12 +34,6 @@ class WalkService @Inject constructor(): Service() {
     private var noti: Notification? = null
     var isServiceRunning: Boolean = false
 
-    override fun onCreate() {
-        super.onCreate()
-
-
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         /** 포그라운드 서비스 돌리기 */
         /** 아래 notification을 띄우지 않는 경우 앱이 죽음

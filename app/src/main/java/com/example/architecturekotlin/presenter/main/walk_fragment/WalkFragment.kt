@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -140,10 +139,9 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         }
     }
 
-    fun startServiceViaWorker() {
+    private fun startServiceViaWorker() {
         Logger.d("startServiceViaWorker called")
         val UNIQUE_WORK_NAME = "StartWalkServiceViaWorker"
-        //String WORKER_TAG = "MyServiceWorkerTag";
         val workManager = WorkManager.getInstance(requireContext())
 
         // As per Documentation: The minimum repeat interval that can be defined is 15 minutes (
@@ -152,8 +150,8 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
             WalkWorker::class.java,
             16,
             TimeUnit.MINUTES
-        ) //.addTag(WORKER_TAG)
-            .build()
+        ).build()
+
         // below method will schedule a new work, each time app is opened
         //workManager.enqueue(request);
 
