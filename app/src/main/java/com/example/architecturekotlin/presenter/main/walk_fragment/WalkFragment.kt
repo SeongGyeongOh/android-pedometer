@@ -51,7 +51,11 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        checkPermission(Build.VERSION.SDK_INT)
+        if (pref.getBoolVal("isServiceRunning")) {
+            startService()
+        }
+
+        setVisibility()
 
         binding.moveBtn.setOnClickListener {
             val action = WalkFragmentDirections.actionWalkFragmentToWalkGraphFragment()
@@ -60,6 +64,10 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
         binding.startWalkBtn.setOnClickListener {
             checkPermission(Build.VERSION.SDK_INT)
+        }
+
+        binding.endWalkBtn.setOnClickListener {
+            stopService()
         }
 
         handleState()
@@ -105,9 +113,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
                 requireContext(),
                 permission
             ) -> {
-                startServiceViaWorker()
-                binding.startWalkBtn.visibility = GONE
-                binding.walkFixText.visibility = VISIBLE
+                startService()
             }
             else -> {
                 permissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
@@ -119,49 +125,61 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            pref.setBoolValue("isFirstRun", true)
             startService()
-            binding.startWalkBtn.visibility = GONE
-            binding.walkFixText.visibility = VISIBLE
         } else {
-            Toast.makeText(requireContext(), "만보기 사용을 위해 권한을 허용해 주세요", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "만보기 사용을 위해 권한을 허용해야 합니다", Toast.LENGTH_SHORT).show()
+            activity?.finish()
         }
     }
 
     private fun startService() {
-        if (!WalkService().isServiceRunning) {
-            val intent = Intent(requireContext(), WalkService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                activity?.startForegroundService(intent)
-            } else {
-                activity?.startService(intent)
-            }
+        pref.setBoolValue("isServiceRunning", true)
+        setVisibility()
+
+        val intent = Intent(requireContext(), WalkService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity?.startForegroundService(intent)
+        } else {
+            activity?.startService(intent)
         }
+
+        startServiceViaWorker()
     }
 
     private fun startServiceViaWorker() {
-        Logger.d("startServiceViaWorker called")
+        Logger.d("프레그먼트 - 워커로 서비스 실행하기")
+
         val UNIQUE_WORK_NAME = "StartWalkServiceViaWorker"
         val workManager = WorkManager.getInstance(requireContext())
 
-        // As per Documentation: The minimum repeat interval that can be defined is 15 minutes (
-        // same as the JobScheduler API), but in practice 15 doesn't work. Using 16 here
         val request = PeriodicWorkRequest.Builder(
             WalkWorker::class.java,
             16,
             TimeUnit.MINUTES
         ).build()
 
-        // below method will schedule a new work, each time app is opened
-        //workManager.enqueue(request);
-
-        // to schedule a unique work, no matter how many times app is opened i.e. startServiceViaWorker gets called
-        // https://developer.android.com/topic/libraries/architecture/workmanager/how-to/unique-work
-        // do check for AutoStart permission
         workManager.enqueueUniquePeriodicWork(
             UNIQUE_WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
             request
         )
+    }
+
+    private fun stopService() {
+        pref.setBoolValue("isServiceRunning", false)
+        setVisibility()
+
+        val intent = Intent(requireContext(), WalkService::class.java)
+        activity?.stopService(intent)
+    }
+
+    private fun setVisibility() {
+        if (pref.getBoolVal("isServiceRunning")) {
+            binding.startWalkBtn.visibility = GONE
+            binding.walkFixText.visibility = VISIBLE
+        } else {
+            binding.startWalkBtn.visibility = VISIBLE
+            binding.walkFixText.visibility = GONE
+        }
     }
 }

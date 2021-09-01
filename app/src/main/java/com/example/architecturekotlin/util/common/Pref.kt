@@ -37,7 +37,7 @@ open class Pref @Inject constructor(
 
     fun getBoolVal(key: String): Boolean {
         val prefs: SharedPreferences = context.getSharedPreferences(getKey(), 0)
-        return prefs.getBoolean(key, true)
+        return prefs.getBoolean(key, false)
     }
 
     fun getIntValue(key: String): Int {

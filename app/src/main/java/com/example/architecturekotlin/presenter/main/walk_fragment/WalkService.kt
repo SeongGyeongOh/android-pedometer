@@ -11,16 +11,21 @@ import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.example.architecturekotlin.R
 import com.example.architecturekotlin.domain.model.WalkModel
 import com.example.architecturekotlin.domain.repository.local.WalkRepository
 import com.example.architecturekotlin.presenter.main.MainActivity
 import com.example.architecturekotlin.util.common.Logger
+import com.example.architecturekotlin.util.common.Pref
 import com.example.architecturekotlin.util.common.getCurrentDate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,12 +34,20 @@ class WalkService @Inject constructor(): Service() {
     @Inject
     lateinit var walkRepository: WalkRepository
 
+    @Inject
+    lateinit var pref: Pref
+
     private var sensor: Sensor? = null
     private var newCnt: Int = 0
     private var noti: Notification? = null
     var isServiceRunning: Boolean = false
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Logger.d("서비스 - onStartCommand")
+        isServiceRunning = true
+        pref.setBoolValue("needWorker", true)
+
+
         /** 포그라운드 서비스 돌리기 */
         /** 아래 notification을 띄우지 않는 경우 앱이 죽음
          * android.app.RemoteServiceException: Context.startForegroundService() did not then call Service.startForeground() */
@@ -77,17 +90,18 @@ class WalkService @Inject constructor(): Service() {
                 NotificationManager.IMPORTANCE_DEFAULT
             )
 
+            channel.vibrationPattern = longArrayOf(0)
+            channel.enableVibration(true)
+
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
     }
 
     override fun onDestroy() {
-        isServiceRunning = false
+        Logger.d("서비스 - onDestroy")
+        pref.setBoolValue("needWorker", false)
         stopForeground(true)
-
-        val intent = Intent(this, MyReceiver::class.java)
-        sendBroadcast(intent)
 
         super.onDestroy()
     }

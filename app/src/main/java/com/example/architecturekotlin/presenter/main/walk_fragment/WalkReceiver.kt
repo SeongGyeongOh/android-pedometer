@@ -3,25 +3,28 @@ package com.example.architecturekotlin.presenter.main.walk_fragment
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
+import com.example.architecturekotlin.util.common.Logger
 
 class MyReceiver : BroadcastReceiver() {
     private val TAG = "MyReceiver"
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "onReceive called")
+        Logger.d("브로드캐스트 리시버 - onReceive")
 
-        //ContextCompat.startForegroundService(context, new Intent(context, MyService.class));
 
-        // We are starting MyService via a worker and not directly because since Android 7
-        // (but officially since Lollipop!), any process called by a BroadcastReceiver
-        // (only manifest-declared receiver) is run at low priority and hence eventually
-        // killed by Android. Docs: https://developer.android.com/guide/components/broadcasts#effects-process-state
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED -> {
+                Logger.d("브로드캐스트 리시버 - ACTION_BOOT_COMPLETED")
 
-        val workManager = WorkManager.getInstance(context)
-        val startServiceRequest = OneTimeWorkRequest.Builder(WalkWorker::class.java)
-            .build()
-        workManager.enqueue(startServiceRequest)
+                val workManager = WorkManager.getInstance(context)
+                val startServiceRequest = OneTimeWorkRequest.Builder(WalkWorker::class.java)
+                    .build()
+                workManager.enqueue(startServiceRequest)
+            }
+        }
     }
 }

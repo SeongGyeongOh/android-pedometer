@@ -11,6 +11,15 @@
         android:layout_height="match_parent">
 
         <Button
+            android:id="@+id/move_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="만보기 기록 페이지로 이동"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
             android:id="@+id/start_walk_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -20,6 +29,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <Button
+            android:id="@+id/end_walk_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="만보기 종료"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/start_walk_btn" />
+
         <TextView
             android:id="@+id/walk_fix_text"
             android:layout_width="wrap_content"
@@ -28,18 +46,8 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/start_walk_btn" />
-
-        <Button
-            android:id="@+id/move_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="만보기 기록 페이지로 이동"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/end_walk_btn" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 </FrameLayout>
