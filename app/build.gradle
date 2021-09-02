@@ -160,4 +160,7 @@ dependencies {
     // generate barcode
     implementation "com.google.zxing:core:3.3.3"
 
+    // graph library
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
 }

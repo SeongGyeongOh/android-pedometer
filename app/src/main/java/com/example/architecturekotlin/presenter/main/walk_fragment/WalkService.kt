@@ -37,6 +37,7 @@ class WalkService @Inject constructor(): Service() {
     @Inject
     lateinit var pref: Pref
 
+    private var sensorManager: SensorManager? = null
     private var sensor: Sensor? = null
     private var newCnt: Int = 0
     private var noti: Notification? = null
@@ -46,7 +47,6 @@ class WalkService @Inject constructor(): Service() {
         Logger.d("서비스 - onStartCommand")
         isServiceRunning = true
         pref.setBoolValue("needWorker", true)
-
 
         /** 포그라운드 서비스 돌리기 */
         /** 아래 notification을 띄우지 않는 경우 앱이 죽음
@@ -65,13 +65,13 @@ class WalkService @Inject constructor(): Service() {
 
         startForeground(1, noti)
 
-        val sensorManager = this.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        sensorManager = this.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
 
         if (sensor == null) {
             Toast.makeText(this, "실행할 수 있는 센서가 없습니다", Toast.LENGTH_SHORT).show()
         } else {
-            sensorManager.registerListener(
+            sensorManager?.registerListener(
                 sensorListener,
                 sensor,
                 SensorManager.SENSOR_DELAY_NORMAL
@@ -101,7 +101,17 @@ class WalkService @Inject constructor(): Service() {
     override fun onDestroy() {
         Logger.d("서비스 - onDestroy")
         pref.setBoolValue("needWorker", false)
+
+        if (pref.getBoolVal("isServiceRunning")) {
+            Logger.d("서비스 - 혼자 죽음")
+            pref.setBoolValue("needWorker", true)
+            val intent = Intent(this, MyReceiver::class.java)
+            intent.action = "ACTION_RESTART"
+            sendBroadcast(intent)
+        }
+
         stopForeground(true)
+        sensorManager?.unregisterListener(sensorListener)
 
         super.onDestroy()
     }

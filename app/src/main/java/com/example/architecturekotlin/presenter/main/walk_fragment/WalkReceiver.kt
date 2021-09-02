@@ -17,8 +17,8 @@ class MyReceiver : BroadcastReceiver() {
 
 
         when (intent.action) {
-            Intent.ACTION_BOOT_COMPLETED -> {
-                Logger.d("브로드캐스트 리시버 - ACTION_BOOT_COMPLETED")
+            Intent.ACTION_BOOT_COMPLETED, "ACTION_RESTART" -> {
+                Logger.d("브로드캐스트 리시버 - ACTION_BOOT_COMPLETED, ACTION_RESTART")
 
                 val workManager = WorkManager.getInstance(context)
                 val startServiceRequest = OneTimeWorkRequest.Builder(WalkWorker::class.java)
