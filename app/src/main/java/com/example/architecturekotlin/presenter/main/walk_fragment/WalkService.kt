@@ -11,9 +11,6 @@ import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
 import com.example.architecturekotlin.R
 import com.example.architecturekotlin.domain.model.WalkModel
 import com.example.architecturekotlin.domain.repository.local.WalkRepository
@@ -25,7 +22,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -41,11 +37,10 @@ class WalkService @Inject constructor(): Service() {
     private var sensor: Sensor? = null
     private var newCnt: Int = 0
     private var noti: Notification? = null
-    var isServiceRunning: Boolean = false
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Logger.d("서비스 - onStartCommand")
-        isServiceRunning = true
+        pref.setBoolValue("isServiceRunning", true)
         pref.setBoolValue("needWorker", true)
 
         /** 포그라운드 서비스 돌리기 */
@@ -100,14 +95,16 @@ class WalkService @Inject constructor(): Service() {
 
     override fun onDestroy() {
         Logger.d("서비스 - onDestroy")
-        pref.setBoolValue("needWorker", false)
 
         if (pref.getBoolVal("isServiceRunning")) {
             Logger.d("서비스 - 혼자 죽음")
-            pref.setBoolValue("needWorker", true)
+
             val intent = Intent(this, MyReceiver::class.java)
             intent.action = "ACTION_RESTART"
+
             sendBroadcast(intent)
+        } else {
+            pref.setBoolValue("needWorker", false)
         }
 
         stopForeground(true)
@@ -140,7 +137,6 @@ class WalkService @Inject constructor(): Service() {
         Logger.d("서비스에서 데이터 추가하기")
 
         newCnt = walkRepository.getTodayCount(date).count + 1
-
         walkRepository.upsertWalk(WalkModel(date = date, count = newCnt))
     }
 }

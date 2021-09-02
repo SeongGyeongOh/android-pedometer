@@ -51,7 +51,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         super.onViewCreated(view, savedInstanceState)
 
         if (pref.getBoolVal("isServiceRunning")) {
-            startService()
+            startServiceViaWorker()
         }
 
         setVisibility()
@@ -133,8 +133,6 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
     private fun startService() {
         pref.setBoolValue("isServiceRunning", true)
-        setVisibility()
-
         val intent = Intent(requireContext(), WalkService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             activity?.startForegroundService(intent)
@@ -142,7 +140,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
             activity?.startService(intent)
         }
 
-        startServiceViaWorker()
+        setVisibility()
     }
 
     private fun startServiceViaWorker() {

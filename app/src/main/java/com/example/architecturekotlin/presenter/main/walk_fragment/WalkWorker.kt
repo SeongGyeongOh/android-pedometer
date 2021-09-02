@@ -16,8 +16,8 @@ class WalkWorker(
     var pref = Pref(context)
 
     override fun doWork(): Result {
-        Logger.d("워커 needWorker ${pref.getBoolVal("needWorker")}")
-        if (!WalkService().isServiceRunning && pref.getBoolVal("needWorker")) {
+        Logger.d("워커 isServiceRunning ${pref.getBoolVal("isServiceRunning")} \n needWorker ${pref.getBoolVal("needWorker")}")
+        if (pref.getBoolVal("isServiceRunning") && pref.getBoolVal("needWorker")) {
             val intent = Intent(context, WalkService::class.java)
             ContextCompat.startForegroundService(context, intent)
         }
