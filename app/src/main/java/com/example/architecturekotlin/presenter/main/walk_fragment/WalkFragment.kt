@@ -172,19 +172,6 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         activity?.stopService(intent)
     }
 
-    private fun stopService2() {
-        Logger.d("서비스 돌아가나? ${pref.getBoolVal("isServiceRunning")}")
-
-        val intent = Intent(requireContext(), WalkService::class.java)
-        activity?.stopService(intent)
-    }
-
-    override fun onDestroy() {
-        stopService2()
-
-        super.onDestroy()
-    }
-
     private fun setVisibility() {
         if (pref.getBoolVal("isServiceRunning")) {
             binding.startWalkBtn.visibility = GONE

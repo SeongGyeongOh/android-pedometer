@@ -10,7 +10,7 @@ import androidx.work.WorkManager
 import com.example.architecturekotlin.util.common.Logger
 
 class MyReceiver : BroadcastReceiver() {
-    private val TAG = "MyReceiver"
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent) {
         Logger.d("브로드캐스트 리시버 - onReceive")
