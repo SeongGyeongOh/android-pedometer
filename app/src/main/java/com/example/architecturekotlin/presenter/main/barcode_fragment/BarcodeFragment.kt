@@ -12,6 +12,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.example.architecturekotlin.databinding.FragmentBarcodeBinding
 import com.example.architecturekotlin.presenter.BaseFragment
+import com.example.architecturekotlin.util.common.Logger
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.WriterException
+import com.google.zxing.common.BitMatrix
+import com.journeyapps.barcodescanner.BarcodeEncoder
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 import kotlin.math.sqrt
@@ -73,13 +79,28 @@ class BarcodeFragment : BaseFragment<FragmentBarcodeBinding>(), SensorEventListe
                 mShakeTime = curTime
                 mShakeTime++
 
-                Toast.makeText(requireContext(), "흔들림 감지!!", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(requireContext(), "흔들림 감지!!", Toast.LENGTH_SHORT).show()
+                generateBarcode()
             }
         }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
 
+    }
+
+    private fun generateBarcode() {
+        val text = "20210903"
+        val multiFormatWriter = MultiFormatWriter()
+        try {
+            val bitMatrix = multiFormatWriter.encode(text, BarcodeFormat.CODE_128, 200, 200)
+            val barcodeEncoder = BarcodeEncoder()
+            val bitmap = barcodeEncoder.createBitmap(bitMatrix)
+
+            binding.barcodeImg.setImageBitmap(bitmap)
+        } catch (e: WriterException) {
+            Logger.e("바코드 생성 에러")
+        }
     }
 
     companion object {
