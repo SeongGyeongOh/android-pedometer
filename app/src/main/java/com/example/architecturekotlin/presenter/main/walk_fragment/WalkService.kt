@@ -15,9 +15,7 @@ import com.example.architecturekotlin.R
 import com.example.architecturekotlin.domain.model.WalkModel
 import com.example.architecturekotlin.domain.repository.local.WalkRepository
 import com.example.architecturekotlin.presenter.main.MainActivity
-import com.example.architecturekotlin.util.common.Logger
-import com.example.architecturekotlin.util.common.Pref
-import com.example.architecturekotlin.util.common.getCurrentDate
+import com.example.architecturekotlin.util.common.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,13 +33,15 @@ class WalkService @Inject constructor(): Service() {
 
     private var sensorManager: SensorManager? = null
     private var sensor: Sensor? = null
-    private var newCnt: Int = 0
     private var noti: Notification? = null
+    private var sCounterSteps: Int? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Logger.d("서비스 - onStartCommand")
         pref.setBoolValue("isServiceRunning", true)
         pref.setBoolValue("needWorker", true)
+        sCounterSteps = pref.getIntValue("isInit")
+
 
         /** 포그라운드 서비스 돌리기 */
         /** 아래 notification을 띄우지 않는 경우 앱이 죽음
@@ -121,9 +121,15 @@ class WalkService @Inject constructor(): Service() {
         /** 센서로부터 측정된 값이 전달되는 메소드 */
         override fun onSensorChanged(event: SensorEvent?) {
             if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-                Logger.d("센서 실행 - 만보기 카운트")
+                if (sCounterSteps!! < 1) {
+                    sCounterSteps = event.values[0].toInt()
+                    pref.setIntValue("isInit", sCounterSteps!!)
+                }
 
-                insertData(System.currentTimeMillis().getCurrentDate())
+                val addedVal = event.values[0].toInt() - sCounterSteps!!
+                Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")
+
+                insertData(System.currentTimeMillis().getCurrentDateWithYear(), addedVal)
             }
         }
 
@@ -133,10 +139,10 @@ class WalkService @Inject constructor(): Service() {
 
     private fun insertData(
         date: String,
+        addedVal: Int
     ) = CoroutineScope(Dispatchers.Default).launch {
         Logger.d("서비스에서 데이터 추가하기")
 
-        newCnt = walkRepository.getTodayCount(date).count + 1
-        walkRepository.upsertWalk(WalkModel(date = date, count = newCnt))
+        walkRepository.upsertWalk(WalkModel(date = date, count = addedVal))
     }
 }

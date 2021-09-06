@@ -23,9 +23,7 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.example.architecturekotlin.databinding.FragmentWalkBinding
 import com.example.architecturekotlin.presenter.BaseFragment
-import com.example.architecturekotlin.util.common.Logger
-import com.example.architecturekotlin.util.common.Pref
-import com.example.architecturekotlin.util.common.getCurrentDate
+import com.example.architecturekotlin.util.common.*
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -71,27 +69,19 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
         handleState()
 
-        viewModel.setIntent(WalkIntent.GetTodayData(date = System.currentTimeMillis().getCurrentDate()))
+        viewModel.setIntent(WalkIntent.GetTodayData(
+            date = System.currentTimeMillis().getCurrentDateWithYear())
+        )
     }
 
     private fun handleState() {
         viewModel.walkState.asLiveData().observe(viewLifecycleOwner) { state ->
             when (state) {
-                WalkState.Counting -> {
-
-                }
                 is WalkState.TodayCount -> {
                     state.walkData.asLiveData().observe(viewLifecycleOwner) {
                         binding.walkFixText.text = "오늘 걸은 걸음 :  ${it.count}"
                     }
                 }
-
-                is WalkState.TotalCount -> {
-                    state.walkData.asLiveData().observe(viewLifecycleOwner) { dataList ->
-                        Logger.d("성공!! ${dataList}")
-                    }
-                }
-
                 is WalkState.Fail -> {
                     Logger.d("실패 ${state.error.message}")
                 }

@@ -58,15 +58,13 @@ class WalkGraphFragment : BaseFragment<FragmentWalkGraphBinding>() {
         viewModel.walkState.asLiveData().observe(viewLifecycleOwner) { state ->
             when(state) {
                 is WalkState.TotalCount -> {
-                    state.walkData.asLiveData().observe(viewLifecycleOwner) {
-                        cntList = if (it.size <= 7) {
-                            it
-                        } else {
-                            it.subList(it.size - 7, it.size)
-                        }
-                        adapter.submitList(it)
-                        setChart()
+                    cntList = if (state.walkData.size <= 7) {
+                        state.walkData
+                    } else {
+                        state.walkData.subList(state.walkData.size - 7, state.walkData.size)
                     }
+                    adapter.submitList(state.walkData)
+                    setChart()
                 }
                 is WalkState.Fail -> {
                     Logger.d("데이터 못가져옴 ${state.error.message}")

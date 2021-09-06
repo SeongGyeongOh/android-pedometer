@@ -7,9 +7,9 @@ import javax.inject.Inject
 
 class GetWalkUseCase @Inject constructor(
     private val repository: WalkRepository
-) : UseCaseWithoutParams<Flow<List<WalkModel>>>() {
+) : UseCaseWithoutParams<List<WalkModel>>() {
 
-    public override suspend fun buildUseCase(): Flow<List<WalkModel>> {
+    public override suspend fun buildUseCase(): List<WalkModel> {
         return repository.getWalkCount()
     }
 }

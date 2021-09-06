@@ -6,8 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.architecturekotlin.domain.usecase.GetTodayWalkUseCase
 import com.example.architecturekotlin.domain.usecase.GetWalkUseCase
-import com.example.architecturekotlin.domain.usecase.SaveWalkUseCase
-import com.example.architecturekotlin.util.common.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -16,7 +14,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WalkViewModel @Inject constructor(
-    private val saveWalkUseCase: SaveWalkUseCase,
     private val getWalkUseCase: GetWalkUseCase,
     private val getTodayWalkUseCase: GetTodayWalkUseCase,
 ) : ViewModel() {
@@ -48,10 +45,6 @@ class WalkViewModel @Inject constructor(
                 WalkIntent.CountWalk -> {
                     _walkState.value = WalkState.Counting
                 }
-                is WalkIntent.SaveData -> {
-                    Logger.d("뷰모델 WalkIntent.SaveData")
-                    saveWalkData(it.date, it.count)
-                }
                 WalkIntent.GetData -> {
                     getWalkData()
                 }
@@ -59,15 +52,6 @@ class WalkViewModel @Inject constructor(
                     getTodayData(it.date)
                 }
             }
-        }
-    }
-
-    private fun saveWalkData(date: String, count: Int)
-    = viewModelScope.launch(Dispatchers.Default) {
-        _walkState.value = try {
-            WalkState.TotalCount(saveWalkUseCase.buildUseCase(Pair(date, count)))
-        } catch (e: Exception) {
-            WalkState.Fail(Error("Walk 데이터 저장에 실패하였습니다.", e.cause))
         }
     }
 

@@ -31,16 +31,4 @@ class DatabaseModule {
     fun provideWalkDao(walkDatabase: CommonDatabase): WalkDao {
         return walkDatabase.walkDao()
     }
-
-
-//    @Provides
-//    @Singleton
-//    fun provideWalkDatabase(context: Context): WalkDatabase {
-//        return WalkDatabase.getDatabase(context)
-//    }
-//
-//    @Provides
-//    fun provideWalkDao(walkDatabase: WalkDatabase): WalkDao {
-//        return walkDatabase.walkDao()
-//    }
 }

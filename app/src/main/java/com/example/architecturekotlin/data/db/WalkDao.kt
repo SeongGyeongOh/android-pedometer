@@ -3,6 +3,7 @@ package com.example.architecturekotlin.data.db
 import androidx.room.*
 import com.example.architecturekotlin.data.entity.WalkEntity
 import com.example.architecturekotlin.util.common.Logger
+import com.example.architecturekotlin.util.common.Pref
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,7 @@ import kotlinx.coroutines.launch
 @Dao
 interface WalkDao {
     @Query("SELECT * FROM walk_table")
-    fun getWalkCount(): Flow<List<WalkEntity>>
+    fun getWalkCount(): List<WalkEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(walkEntity: WalkEntity) : Long
@@ -27,13 +28,13 @@ interface WalkDao {
     @Update(entity = WalkEntity::class)
     suspend fun updateCnt2(walkEntity: WalkEntity)
 
-    @Query("DELETE FROM walk_table WHERE :date = date")
+    @Query("DELETE FROM walk_table WHERE  date = :date")
     suspend fun deleteData(date: String)
 
-    @Query("SELECT * FROM walk_table WHERE :date = date")
+    @Query("SELECT * FROM walk_table WHERE date = :date")
     fun getTodayCount(date: String) : WalkEntity?
 
-    @Query("SELECT * FROM walk_table WHERE :date = date")
+    @Query("SELECT * FROM walk_table WHERE date = :date")
     fun getTodayCountAsFlow(date: String) : Flow<WalkEntity?>
 
     @Transaction
