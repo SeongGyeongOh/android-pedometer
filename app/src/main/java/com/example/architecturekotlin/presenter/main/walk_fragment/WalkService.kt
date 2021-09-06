@@ -40,8 +40,6 @@ class WalkService @Inject constructor(): Service() {
         Logger.d("서비스 - onStartCommand")
         pref.setBoolValue("isServiceRunning", true)
         pref.setBoolValue("needWorker", true)
-        sCounterSteps = pref.getIntValue("isInit")
-
 
         /** 포그라운드 서비스 돌리기 */
         /** 아래 notification을 띄우지 않는 경우 앱이 죽음
@@ -121,10 +119,12 @@ class WalkService @Inject constructor(): Service() {
     private val sensorListener = object : SensorEventListener {
         /** 센서로부터 측정된 값이 전달되는 메소드 */
         override fun onSensorChanged(event: SensorEvent?) {
+            sCounterSteps = pref.getIntValue("isInit")
             if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
                 if (sCounterSteps!! < 1) {
                     sCounterSteps = event.values[0].toInt()
-                    pref.setIntValue("isInit", sCounterSteps!!)
+                    pref.setIntValue("isInit", 2)
+                    Logger.d("스텝 카운트 초기화")
                 }
 
                 val addedVal = event.values[0].toInt() - sCounterSteps!!

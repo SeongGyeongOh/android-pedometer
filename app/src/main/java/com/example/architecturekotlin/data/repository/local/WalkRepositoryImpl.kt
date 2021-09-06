@@ -38,7 +38,6 @@ class WalkRepositoryImpl @Inject constructor(
     override suspend fun getTodayCount(date: String): WalkModel {
         if (walkDao.getTodayCount(date) == null) {
             pref.setIntValue("isInit", 0)
-            Logger.d("여어어어기 ##### isInit")
         }
         return walkDao.getTodayCount(date)?.map() ?: WalkModel()
     }
