@@ -2,6 +2,7 @@ package com.example.architecturekotlin.data.db
 
 import androidx.room.*
 import com.example.architecturekotlin.data.entity.WalkEntity
+import com.example.architecturekotlin.presenter.main.walk_fragment.WalkService
 import com.example.architecturekotlin.util.common.Logger
 import com.example.architecturekotlin.util.common.Pref
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +42,8 @@ interface WalkDao {
     suspend fun upsertCnt(walkEntity: WalkEntity) {
         val isExist: WalkEntity? =
             getTodayCount(walkEntity.date)
+
+
 
         if (isExist == null) {
             insert(walkEntity)

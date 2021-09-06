@@ -119,18 +119,18 @@ class WalkService @Inject constructor(): Service() {
     private val sensorListener = object : SensorEventListener {
         /** 센서로부터 측정된 값이 전달되는 메소드 */
         override fun onSensorChanged(event: SensorEvent?) {
-            sCounterSteps = pref.getIntValue("isInit")
-            if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-                if (sCounterSteps!! < 1) {
-                    sCounterSteps = event.values[0].toInt()
-                    pref.setIntValue("isInit", 2)
-                    Logger.d("스텝 카운트 초기화")
+            CoroutineScope(Dispatchers.Default).launch {
+                val yesterday = pref.getValue("yesterday")
+                if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
+                    if (yesterday != System.currentTimeMillis().getCurrentDateWithYear()) {
+                        sCounterSteps = event.values[0].toInt()
+                        pref.setValue("yesterday", System.currentTimeMillis().getCurrentDateWithYear())
+                    }
+                    val addedVal = event.values[0].toInt() - sCounterSteps!!
+                    Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")
+
+                    insertData(System.currentTimeMillis().getCurrentDateWithYear(), addedVal)
                 }
-
-                val addedVal = event.values[0].toInt() - sCounterSteps!!
-                Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")
-
-                insertData(System.currentTimeMillis().getCurrentDateWithYear(), addedVal)
             }
         }
 

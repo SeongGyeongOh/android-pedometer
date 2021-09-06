@@ -5,7 +5,7 @@ import java.util.*
 
 fun Long.getCurrentDateWithYear(): String {
     val date = Date(this)
-    return SimpleDateFormat("yyyy-MM-dd").format(date)
+    return SimpleDateFormat("yyyy-MM-dd HH:mm").format(date)
 }
 
 fun Long.getCurrentYear(): String {
