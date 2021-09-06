@@ -87,6 +87,7 @@ class WalkService @Inject constructor(): Service() {
 
             channel.vibrationPattern = longArrayOf(0)
             channel.enableVibration(true)
+            channel.setSound(null, null)
 
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
