@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class WalkService @Inject constructor(): Service() {
+class WalkService @Inject constructor(): Service(), SensorEventListener {
 
     @Inject
     lateinit var walkRepository: WalkRepository
@@ -34,13 +34,20 @@ class WalkService @Inject constructor(): Service() {
     private var sensorManager: SensorManager? = null
     private var sensor: Sensor? = null
     private var noti: Notification? = null
-    private var sCounterSteps: Int? = null
-    private var defaultStep: Int = 0
+    var defaultVal: Int = 0
+    var isInit: Boolean = false
+    var sCounterSteps: Int = 0
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Logger.d("서비스 - onStartCommand")
         pref.setBoolValue("isServiceRunning", true)
         pref.setBoolValue("needWorker", true)
+        val isInit = intent?.getBooleanExtra("isInit", false)
+
+        if (isInit != true) {
+            sCounterSteps = pref.getIntValue("defaultStep")
+        }
+
 
         /** 포그라운드 서비스 돌리기 */
         /** 아래 notification을 띄우지 않는 경우 앱이 죽음
@@ -65,11 +72,15 @@ class WalkService @Inject constructor(): Service() {
         if (sensor == null) {
             Toast.makeText(this, "실행할 수 있는 센서가 없습니다", Toast.LENGTH_SHORT).show()
         } else {
-            sensorManager?.registerListener(
-                sensorListener,
-                sensor,
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
+            try {
+                sensorManager?.registerListener(
+                    this,
+                    sensor,
+                    SensorManager.SENSOR_DELAY_FASTEST
+                )
+            } catch (e: Exception) {
+                Logger.e("서비스 - 리스너 실패 ${e.cause} : ${e.message}")
+            }
         }
 
         return START_STICKY
@@ -95,7 +106,7 @@ class WalkService @Inject constructor(): Service() {
 
     override fun onDestroy() {
         Logger.d("서비스 - onDestroy")
-        pref.setIntValue("addedVal", defaultStep)
+        pref.setIntValue("defaultStep", defaultVal)
 
         if (pref.getBoolVal("isServiceRunning")) {
             Logger.d("서비스 - 혼자 죽음")
@@ -108,7 +119,7 @@ class WalkService @Inject constructor(): Service() {
         }
 
         stopForeground(true)
-        sensorManager?.unregisterListener(sensorListener)
+        sensorManager?.unregisterListener(this)
 
         super.onDestroy()
     }
@@ -117,41 +128,32 @@ class WalkService @Inject constructor(): Service() {
         return null
     }
 
-    private val sensorListener = object : SensorEventListener {
-        /** 센서로부터 측정된 값이 전달되는 메소드 */
-        override fun onSensorChanged(event: SensorEvent?) {
-            val today = System.currentTimeMillis().getCurrentDateWithYear()
-            val yesterday = pref.getValue("yesterday")
-            val defaultVal = pref.getIntValue("addedVal")
-
-            CoroutineScope(Dispatchers.Default).launch {
-                Logger.d("오늘과 어제를 비교해보자\n오늘: ${today}, 어제: $yesterday")
-                if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-                    if (yesterday != today) {
-                        sCounterSteps = event.values[0].toInt()
-                        pref.setValue("yesterday", today)
-                    } else if (sCounterSteps == null) {
-                        sCounterSteps = event.values[0].toInt() - defaultVal
-                    }
-
-                    val addedVal = event.values[0].toInt() - sCounterSteps!!
-                    defaultStep = addedVal
-                    Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")
-
-                    insertData(today, addedVal)
+    override fun onSensorChanged(event: SensorEvent?) {
+        val today = System.currentTimeMillis().getCurrentDateWithYear()
+        CoroutineScope(Dispatchers.IO).launch {
+            if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
+                if (sCounterSteps < 1) {
+                    sCounterSteps = event.values[0].toInt()
+                    isInit = false
                 }
+
+                val addedVal = event.values[0].toInt() - sCounterSteps
+                defaultVal = sCounterSteps
+                Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")
+
+                insertData(today, addedVal)
             }
         }
+    }
 
-        /** 센서의 정확도가 변경되면 실행되는 메소드(거의 사용 안됨) */
-        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {   }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+
     }
 
     private fun insertData(
         date: String,
         addedVal: Int
-    ) = CoroutineScope(Dispatchers.Default).launch {
-
+    ) = CoroutineScope(Dispatchers.IO).launch {
         walkRepository.upsertWalk(WalkModel(date = date, count = addedVal))
     }
 }

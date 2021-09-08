@@ -18,13 +18,13 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.asLiveData
 import androidx.navigation.fragment.findNavController
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
+import androidx.work.*
 import com.example.architecturekotlin.databinding.FragmentWalkBinding
 import com.example.architecturekotlin.presenter.BaseFragment
 import com.example.architecturekotlin.util.common.*
+import com.example.architecturekotlin.util.common.Logger
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -47,10 +47,6 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        if (pref.getBoolVal("isServiceRunning")) {
-            startServiceViaWorker()
-        }
 
         setVisibility()
 
@@ -131,6 +127,8 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         }
 
         setVisibility()
+
+        startService2()
     }
 
     private fun startServiceViaWorker() {
@@ -167,6 +165,35 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         } else {
             binding.startWalkBtn.visibility = VISIBLE
             binding.walkFixText.visibility = GONE
+        }
+    }
+
+    private fun startService2() {
+        if (!pref.getBoolVal("isFirstRun")) {
+            pref.setValue("자정 실행 여부", "워커 자정에 실행됨")
+            val date = Calendar.getInstance()
+            date.set(Calendar.HOUR_OF_DAY, 2)
+            date.set(Calendar.MINUTE, 0)
+            date.set(Calendar.SECOND, 0)
+            date.set(Calendar.MILLISECOND, 0)
+
+            val duration = date.timeInMillis - System.currentTimeMillis()
+            Logger.d("기간 확인 $duration")
+            Logger.d("기간 확인 현재 ${System.currentTimeMillis()}")
+
+            val workManager = WorkManager.getInstance(requireContext())
+
+            val mywork = OneTimeWorkRequest.Builder(WalkWorker2::class.java)
+                .setInitialDelay(duration, TimeUnit.MILLISECONDS)
+                .build()
+
+            workManager
+                .enqueueUniqueWork(
+                    "init step",
+                    ExistingWorkPolicy.KEEP,
+                    mywork
+                )
+            pref.setBoolValue("isFirstRun", true)
         }
     }
 }
