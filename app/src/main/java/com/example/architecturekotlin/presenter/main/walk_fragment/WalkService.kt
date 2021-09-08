@@ -35,6 +35,7 @@ class WalkService @Inject constructor(): Service() {
     private var sensor: Sensor? = null
     private var noti: Notification? = null
     private var sCounterSteps: Int? = null
+    private var defaultStep: Int = 0
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Logger.d("서비스 - onStartCommand")
@@ -94,13 +95,13 @@ class WalkService @Inject constructor(): Service() {
 
     override fun onDestroy() {
         Logger.d("서비스 - onDestroy")
+        pref.setIntValue("addedVal", defaultStep)
 
         if (pref.getBoolVal("isServiceRunning")) {
             Logger.d("서비스 - 혼자 죽음")
 
             val intent = Intent(this, MyReceiver::class.java)
             intent.action = "ACTION_RESTART"
-
             sendBroadcast(intent)
         } else {
             pref.setBoolValue("needWorker", false)
@@ -119,17 +120,25 @@ class WalkService @Inject constructor(): Service() {
     private val sensorListener = object : SensorEventListener {
         /** 센서로부터 측정된 값이 전달되는 메소드 */
         override fun onSensorChanged(event: SensorEvent?) {
+            val today = System.currentTimeMillis().getCurrentDateWithYear()
+            val yesterday = pref.getValue("yesterday")
+            val defaultVal = pref.getIntValue("addedVal")
+
             CoroutineScope(Dispatchers.Default).launch {
-                val yesterday = pref.getValue("yesterday")
+                Logger.d("오늘과 어제를 비교해보자\n오늘: ${today}, 어제: $yesterday")
                 if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-                    if (yesterday != System.currentTimeMillis().getCurrentDateWithYear()) {
+                    if (yesterday != today) {
                         sCounterSteps = event.values[0].toInt()
-                        pref.setValue("yesterday", System.currentTimeMillis().getCurrentDateWithYear())
+                        pref.setValue("yesterday", today)
+                    } else if (sCounterSteps == null) {
+                        sCounterSteps = event.values[0].toInt() - defaultVal
                     }
+
                     val addedVal = event.values[0].toInt() - sCounterSteps!!
+                    defaultStep = addedVal
                     Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")
 
-                    insertData(System.currentTimeMillis().getCurrentDateWithYear(), addedVal)
+                    insertData(today, addedVal)
                 }
             }
         }
@@ -142,7 +151,6 @@ class WalkService @Inject constructor(): Service() {
         date: String,
         addedVal: Int
     ) = CoroutineScope(Dispatchers.Default).launch {
-        Logger.d("서비스에서 데이터 추가하기")
 
         walkRepository.upsertWalk(WalkModel(date = date, count = addedVal))
     }
