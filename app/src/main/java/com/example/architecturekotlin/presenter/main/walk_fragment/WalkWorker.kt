@@ -17,6 +17,7 @@ class WalkWorker(
     var pref = Pref(context)
 
     override fun doWork(): Result {
+        Logger.d("워커1 실행")
         Logger.d("워커 isServiceRunning ${pref.getBoolVal("isServiceRunning")} \n needWorker ${pref.getBoolVal("needWorker")}")
         if (pref.getBoolVal("isServiceRunning") && pref.getBoolVal("needWorker")) {
             val intent = Intent(context, WalkService::class.java)

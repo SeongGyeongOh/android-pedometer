@@ -172,7 +172,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         if (!pref.getBoolVal("isNotFirstRun")) {
             pref.setValue("자정 실행 여부", "워커 자정에 실행됨")
             val date = Calendar.getInstance()
-            date.set(Calendar.HOUR_OF_DAY, 24)
+            date.set(Calendar.HOUR_OF_DAY, 8)
             date.set(Calendar.MINUTE, 0)
             date.set(Calendar.SECOND, 0)
             date.set(Calendar.MILLISECOND, 0)

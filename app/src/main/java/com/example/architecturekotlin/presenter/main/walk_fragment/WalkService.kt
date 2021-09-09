@@ -39,6 +39,7 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
     var sCounterSteps: Int = 0
     var stepType: StepType = StepType.INIT
     var isInit: Boolean? = false
+    var storedCount: Int = 0
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Logger.d("서비스 - onStartCommand")
@@ -64,19 +65,21 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
             stepType = StepType.FIRST
         } else if (isReboot == true && isInit != true) {
             Logger.d("핸드폰을 재실행했고 날짜가 아직 리셋되지 않았을 때")
-            sCounterSteps = pref.getIntValue("rebootDefault") * -1
+//            sCounterSteps = pref.getIntValue("rebootDefault") * -1
+            storedCount = pref.getIntValue("rebootDefault")
         } else if (!isNotFirstRun) {
             Logger.d("앱 최초 실행일 때")
             stepType = StepType.FIRST
             pref.setBoolValue("isNotFirstRun", true)
-        } else if (isInit != true) {
-            Logger.d("앱 최초 실행이 아니고, 일시정지를 눌렀다가 다시 실행할 때")
-            sCounterSteps = pref.getIntValue("defaultStep")
+        } else if (isInit != true && pref.getBoolVal("isInitialStepSetup")) {
+            Logger.d("앱 최초 실행이 아니고, 카운트가 올라간 상황에서 일시정지를 눌렀다가 다시 실행할 때")
+//            sCounterSteps = pref.getIntValue("defaultStep")
+            stepType = StepType.FIRST
+            storedCount = pref.getIntValue("rebootDefault")
+        } else if (isInit != true && !pref.getBoolVal("isInitialStepSetup")) {
+            Logger.d("앱 최초 실행이 아니고, 카운트가 올라가지 않은 상황에서 일시정지를 눌렀다가 다시 실행할 때")
+            sCounterSteps = pref.getIntValue("defaultStep2")
         }
-//        else if (pref.getValue("today") != System.currentTimeMillis().getCurrentDateWithYear()
-//                    || isInit == true) {
-//        }
-
 
         /** 포그라운드 서비스 돌리기 */
         /** 아래 notification을 띄우지 않는 경우 앱이 죽음
@@ -169,10 +172,11 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
                     else -> {}
                 }
 
-                val addedVal = event.values[0].toInt() - sCounterSteps
+                val addedVal = event.values[0].toInt() - sCounterSteps + storedCount
                 defaultStep = sCounterSteps
                 pref.setIntValue("rebootDefault", addedVal)
                 pref.setIntValue("defaultStep2", event.values[0].toInt())
+                pref.setBoolValue("isInitialStepSetup", true)
                 insertData(today, addedVal)
 
                 Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")

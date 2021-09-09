@@ -32,7 +32,7 @@ class WalkWorker2 constructor(
     private fun repeatWorker() {
         Logger.d("워커2의 repeat Worker 실행")
         val request = OneTimeWorkRequest.Builder(WalkWorker2::class.java)
-            .setInitialDelay(24, TimeUnit.HOURS)
+            .setInitialDelay(3, TimeUnit.HOURS)
             .addTag(REPEAT_TAG)
             .build()
 
