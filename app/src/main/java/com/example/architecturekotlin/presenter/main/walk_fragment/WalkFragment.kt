@@ -169,10 +169,10 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
     }
 
     private fun startService2() {
-        if (!pref.getBoolVal("isFirstRun")) {
+        if (!pref.getBoolVal("isNotFirstRun")) {
             pref.setValue("자정 실행 여부", "워커 자정에 실행됨")
             val date = Calendar.getInstance()
-            date.set(Calendar.HOUR_OF_DAY, 2)
+            date.set(Calendar.HOUR_OF_DAY, 24)
             date.set(Calendar.MINUTE, 0)
             date.set(Calendar.SECOND, 0)
             date.set(Calendar.MILLISECOND, 0)
@@ -183,17 +183,19 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
             val workManager = WorkManager.getInstance(requireContext())
 
-            val mywork = OneTimeWorkRequest.Builder(WalkWorker2::class.java)
+            val request = OneTimeWorkRequest.Builder(WalkWorker2::class.java)
                 .setInitialDelay(duration, TimeUnit.MILLISECONDS)
+                .addTag(WORK_TAG)
                 .build()
 
             workManager
                 .enqueueUniqueWork(
                     "init step",
                     ExistingWorkPolicy.KEEP,
-                    mywork
+                    request
                 )
-            pref.setBoolValue("isFirstRun", true)
         }
     }
+
+    val WORK_TAG = "StartServiceInFragment"
 }

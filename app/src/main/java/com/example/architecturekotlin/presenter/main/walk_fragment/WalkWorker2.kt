@@ -2,6 +2,8 @@ package com.example.architecturekotlin.presenter.main.walk_fragment
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.work.*
 import com.example.architecturekotlin.util.common.Logger
@@ -15,31 +17,28 @@ class WalkWorker2 constructor(
 
     var pref = Pref(context)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun doWork(): Result {
         Logger.d("워커2 실행")
-        WalkService().isInit = true
         val intent = Intent(context, WalkService::class.java)
         intent.putExtra("isInit", true)
-        ContextCompat.startForegroundService(context, intent)
+        context.startForegroundService(intent)
 
         repeatWorker()
 
         return Result.success()
     }
 
-    fun repeatWorker() {
-        val request = PeriodicWorkRequest.Builder(
-            WalkWorker2::class.java,
-            24,
-            TimeUnit.HOURS
-        ).build()
+    private fun repeatWorker() {
+        Logger.d("워커2의 repeat Worker 실행")
+        val request = OneTimeWorkRequest.Builder(WalkWorker2::class.java)
+            .setInitialDelay(24, TimeUnit.HOURS)
+            .addTag(REPEAT_TAG)
+            .build()
 
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            UNIQUE_WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
-            request
-        )
+        WorkManager.getInstance(context)
+            .enqueue(request)
     }
 
-    val UNIQUE_WORK_NAME = "StartWalkServiceViaWorker"
+    val REPEAT_TAG = "REPEAT"
 }

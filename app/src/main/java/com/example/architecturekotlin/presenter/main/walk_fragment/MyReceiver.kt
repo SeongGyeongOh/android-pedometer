@@ -15,16 +15,22 @@ class MyReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Logger.d("브로드캐스트 리시버 - onReceive")
 
-
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED, "ACTION_RESTART" -> {
                 Logger.d("브로드캐스트 리시버 - ACTION_BOOT_COMPLETED, ACTION_RESTART")
 
+                WorkManager.getInstance(context).cancelAllWorkByTag(WORK_TAG)
+                WorkManager.getInstance(context).cancelAllWorkByTag(REPEAT_TAG)
+
                 val workManager = WorkManager.getInstance(context)
                 val startServiceRequest = OneTimeWorkRequest.Builder(WalkWorker::class.java)
                     .build()
+
                 workManager.enqueue(startServiceRequest)
             }
         }
     }
+
+    val WORK_TAG = "StartServiceInFragment"
+    val REPEAT_TAG = "REPEAT"
 }
