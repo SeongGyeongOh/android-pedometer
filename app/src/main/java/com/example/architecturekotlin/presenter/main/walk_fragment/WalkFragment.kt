@@ -49,6 +49,9 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
         super.onViewCreated(view, savedInstanceState)
 
         setVisibility()
+        val date = pref.getValue("today")
+
+        Logger.i("프레그먼트가 시작될 때 날짜 확인 $date")
 
         binding.moveBtn.setOnClickListener {
             val action = WalkFragmentDirections.actionWalkFragmentToWalkGraphFragment()
@@ -65,8 +68,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
         handleState()
 
-        viewModel.setIntent(WalkIntent.GetTodayData(
-            date = System.currentTimeMillis().getCurrentDateWithYear())
+        viewModel.setIntent(WalkIntent.GetTodayData(date = System.currentTimeMillis().getCurrentDate())
         )
     }
 
@@ -170,9 +172,8 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
 
     private fun startService2() {
         if (!pref.getBoolVal("isNotFirstRun")) {
-            pref.setValue("자정 실행 여부", "워커 자정에 실행됨")
             val date = Calendar.getInstance()
-            date.set(Calendar.HOUR_OF_DAY, 8)
+            date.set(Calendar.HOUR_OF_DAY, 24)
             date.set(Calendar.MINUTE, 0)
             date.set(Calendar.SECOND, 0)
             date.set(Calendar.MILLISECOND, 0)

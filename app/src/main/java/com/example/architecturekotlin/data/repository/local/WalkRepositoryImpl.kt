@@ -35,7 +35,8 @@ class WalkRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getTodayCount(date: String): WalkModel {
+
+    override suspend fun getTodayCount(date: String, hour: String): WalkModel {
         return walkDao.getTodayCount(date)?.map() ?: WalkModel()
     }
 

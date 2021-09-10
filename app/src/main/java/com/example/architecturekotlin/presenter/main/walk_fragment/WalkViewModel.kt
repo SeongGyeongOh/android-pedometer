@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.architecturekotlin.domain.usecase.GetTodayWalkUseCase
 import com.example.architecturekotlin.domain.usecase.GetWalkUseCase
+import com.example.architecturekotlin.util.common.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*

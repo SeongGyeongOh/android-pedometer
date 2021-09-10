@@ -22,6 +22,7 @@ class WalkWorker2 constructor(
         Logger.d("워커2 실행")
         val intent = Intent(context, WalkService::class.java)
         intent.putExtra("isInit", true)
+        intent.putExtra("isInitialStepSetup", false)
         context.startForegroundService(intent)
 
         repeatWorker()
@@ -32,7 +33,7 @@ class WalkWorker2 constructor(
     private fun repeatWorker() {
         Logger.d("워커2의 repeat Worker 실행")
         val request = OneTimeWorkRequest.Builder(WalkWorker2::class.java)
-            .setInitialDelay(3, TimeUnit.HOURS)
+            .setInitialDelay(1, TimeUnit.HOURS)
             .addTag(REPEAT_TAG)
             .build()
 

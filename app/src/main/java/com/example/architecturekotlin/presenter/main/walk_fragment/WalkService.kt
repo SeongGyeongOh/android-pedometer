@@ -35,48 +35,52 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
     private var sensor: Sensor? = null
     private var noti: Notification? = null
     var defaultStep: Int = 0
-    var defaultStep2: Int = 0
     var sCounterSteps: Int = 0
     var stepType: StepType = StepType.INIT
     var isInit: Boolean? = false
     var storedCount: Int = 0
+    var addedCount: Int = 0
+    var date: String? = ""
+    var hour: String? = ""
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Logger.d("서비스 - onStartCommand")
         pref.setBoolValue("isServiceRunning", true)
         pref.setBoolValue("needWorker", true)
-        pref.setValue("today", System.currentTimeMillis().getCurrentDateWithYear())
+        pref.setValue("today", System.currentTimeMillis().getCurrentDate())
+        pref.setValue("hour", System.currentTimeMillis().getCurrentHour())
 
         isInit = intent?.getBooleanExtra("isInit", false)
         val isReboot = intent?.getBooleanExtra("isReboot", false)
+        val isInitialStepSetup = pref.getBoolVal("isInitialStepSetup")
         val isNotFirstRun = pref.getBoolVal("isNotFirstRun")
+        date = pref.getValue("today")
+        hour = pref.getValue("hour")
 
-        Logger.d("서비스 시작 시점 isInit : $isInit")
-        Logger.d("서비스 시작 시점 isNotFirstRun : $isNotFirstRun")
-        Logger.d("서비스 시작 시점 isReboot : $isReboot")
+        Logger.d("서비스 시작 시점 시간 확인 : 저장된 날짜-${date} : 초기화된 날짜-${System.currentTimeMillis().getCurrentDate()}")
 
-        if (pref.getValue("today") != System.currentTimeMillis().getCurrentDateWithYear()
+        if ((pref.getValue("today") != System.currentTimeMillis().getCurrentDate())
             || isInit == true) {
             Logger.d("날짜가 리셋됐을 때")
             sCounterSteps = pref.getIntValue("defaultStep2")
+            storedCount = 0
+            pref.setBoolValue("isInitialStepSetup", false)
             isInit = false
         } else if (isReboot == true && !isNotFirstRun){
             Logger.d("핸드폰을 재실행했고 앱 최초 실행일 때")
             stepType = StepType.FIRST
         } else if (isReboot == true && isInit != true) {
             Logger.d("핸드폰을 재실행했고 날짜가 아직 리셋되지 않았을 때")
-//            sCounterSteps = pref.getIntValue("rebootDefault") * -1
             storedCount = pref.getIntValue("rebootDefault")
         } else if (!isNotFirstRun) {
             Logger.d("앱 최초 실행일 때")
             stepType = StepType.FIRST
             pref.setBoolValue("isNotFirstRun", true)
-        } else if (isInit != true && pref.getBoolVal("isInitialStepSetup")) {
+        } else if (isInit != true && isInitialStepSetup) {
             Logger.d("앱 최초 실행이 아니고, 카운트가 올라간 상황에서 일시정지를 눌렀다가 다시 실행할 때")
-//            sCounterSteps = pref.getIntValue("defaultStep")
             stepType = StepType.FIRST
             storedCount = pref.getIntValue("rebootDefault")
-        } else if (isInit != true && !pref.getBoolVal("isInitialStepSetup")) {
+        } else if (isInit != true && !isInitialStepSetup) {
             Logger.d("앱 최초 실행이 아니고, 카운트가 올라가지 않은 상황에서 일시정지를 눌렀다가 다시 실행할 때")
             sCounterSteps = pref.getIntValue("defaultStep2")
         }
@@ -140,6 +144,14 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
         Logger.d("서비스 - onDestroy")
         pref.setIntValue("defaultStep", defaultStep)
 
+        Logger.d("서비스 죽을 때 확인 $addedCount")
+
+        if (addedCount == 0) {
+            pref.setBoolValue("isInitialStepSetup", false)
+        } else {
+            pref.setBoolValue("isInitialStepSetup", true)
+        }
+
         if (pref.getBoolVal("isServiceRunning")) {
             Logger.d("서비스 - 혼자 죽음")
             val intent = Intent(this, MyReceiver::class.java)
@@ -160,26 +172,26 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        val today = System.currentTimeMillis().getCurrentDateWithYear()
         CoroutineScope(Dispatchers.IO).launch {
             if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
                 when (stepType) {
                     StepType.FIRST -> {
-                        Logger.d("센서 실행구 ################# StepType.FIRST")
                         sCounterSteps = event.values[0].toInt()
                         stepType = StepType.INIT
                     }
                     else -> {}
                 }
 
-                val addedVal = event.values[0].toInt() - sCounterSteps + storedCount
                 defaultStep = sCounterSteps
+
+                val addedVal = event.values[0].toInt() - sCounterSteps + storedCount
+                addedCount = event.values[0].toInt() - sCounterSteps
+                insertData(date!!, hour!!, addedVal)
+
+                Logger.d("디비에 추가되는 데이터 ${addedVal} : 이벤트-${event.values[0].toInt()} : 스텝-$sCounterSteps : 저장된 스텝-$storedCount")
+
                 pref.setIntValue("rebootDefault", addedVal)
                 pref.setIntValue("defaultStep2", event.values[0].toInt())
-                pref.setBoolValue("isInitialStepSetup", true)
-                insertData(today, addedVal)
-
-                Logger.d("디비에 추가되는 데이터 ${addedVal} : ${event.values[0].toInt()} : $sCounterSteps")
             }
         }
     }
@@ -190,12 +202,13 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
 
     private fun insertData(
         date: String,
+        hour: String,
         addedVal: Int
     ) = CoroutineScope(Dispatchers.IO).launch {
         walkRepository.upsertWalk(WalkModel(date = date, count = addedVal))
     }
+}
 
-    enum class StepType {
-        INIT, FIRST, SECOND, ZERO, DEFAULT
-    }
+enum class StepType {
+    INIT, FIRST
 }

@@ -43,8 +43,6 @@ interface WalkDao {
         val isExist: WalkEntity? =
             getTodayCount(walkEntity.date)
 
-
-
         if (isExist == null) {
             insert(walkEntity)
         } else {
