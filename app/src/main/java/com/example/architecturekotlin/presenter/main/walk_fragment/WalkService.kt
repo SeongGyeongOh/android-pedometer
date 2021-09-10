@@ -83,6 +83,7 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
         } else if (isInit != true && !isInitialStepSetup) {
             Logger.d("앱 최초 실행이 아니고, 카운트가 올라가지 않은 상황에서 일시정지를 눌렀다가 다시 실행할 때")
             sCounterSteps = pref.getIntValue("defaultStep2")
+            storedCount = pref.getIntValue("rebootDefault")
         }
 
         /** 포그라운드 서비스 돌리기 */
@@ -186,7 +187,7 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
 
                 val addedVal = event.values[0].toInt() - sCounterSteps + storedCount
                 addedCount = event.values[0].toInt() - sCounterSteps
-                insertData(date!!, hour!!, addedVal)
+                insertData(date!!, addedVal)
 
                 Logger.d("디비에 추가되는 데이터 ${addedVal} : 이벤트-${event.values[0].toInt()} : 스텝-$sCounterSteps : 저장된 스텝-$storedCount")
 
@@ -202,7 +203,6 @@ class WalkService @Inject constructor(): Service(), SensorEventListener {
 
     private fun insertData(
         date: String,
-        hour: String,
         addedVal: Int
     ) = CoroutineScope(Dispatchers.IO).launch {
         walkRepository.upsertWalk(WalkModel(date = date, count = addedVal))

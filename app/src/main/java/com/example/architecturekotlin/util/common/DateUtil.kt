@@ -5,7 +5,7 @@ import java.util.*
 
 fun Long.getCurrentDate(): String {
     val date = Date(this)
-    return SimpleDateFormat("yyyy-MM-dd").format(date)
+    return SimpleDateFormat("yyyy-MM-dd : HH").format(date)
 }
 
 fun Long.getCurrentHour(): String {

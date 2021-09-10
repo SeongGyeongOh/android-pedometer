@@ -35,7 +35,7 @@ class WalkWorker(
 
     private fun setWorkerTime() {
         val date = Calendar.getInstance()
-        date.set(Calendar.HOUR_OF_DAY, 24)
+        date.add(Calendar.HOUR, 1)
         date.set(Calendar.MINUTE, 0)
         date.set(Calendar.SECOND, 0)
         date.set(Calendar.MILLISECOND, 0)

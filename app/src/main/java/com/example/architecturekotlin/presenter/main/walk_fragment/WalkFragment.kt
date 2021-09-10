@@ -173,7 +173,7 @@ class WalkFragment @Inject constructor() : BaseFragment<FragmentWalkBinding>() {
     private fun startService2() {
         if (!pref.getBoolVal("isNotFirstRun")) {
             val date = Calendar.getInstance()
-            date.set(Calendar.HOUR_OF_DAY, 24)
+            date.add(Calendar.HOUR, 1)
             date.set(Calendar.MINUTE, 0)
             date.set(Calendar.SECOND, 0)
             date.set(Calendar.MILLISECOND, 0)
